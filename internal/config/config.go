@@ -5,15 +5,21 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zrcoder/leetgo/internal/trace"
+	"github.com/zrcoder/leetgo/internal/log"
 )
 
 const (
-	LangKey    = "lang"
-	ProjectKey = "project"
+	LangKey     = "lang"
+	CodeLangKey = "code"
+	ProjectKey  = "project"
 
-	DefaultProjectDir = "~/leetcode"
+	DefaultProjectDir = "leetgo"
 	DefaultLanguage   = "en"
+	CodeLangGo        = "golang"
+	CodeLangGoShort   = "go"
+	CodeLangJava      = "java"
+	CodeLangPython    = "python"
+	DefaultCodeLang   = CodeLangGo
 	cnLanguage        = "cn"
 
 	enDomain = "https://leetcode.com"
@@ -33,25 +39,22 @@ func init() {
 }
 
 var defaultCfg = map[string]string{
-	LangKey:    DefaultLanguage,
-	ProjectKey: DefaultProjectDir,
+	LangKey:     DefaultLanguage,
+	ProjectKey:  DefaultProjectDir,
+	CodeLangKey: DefaultCodeLang,
 }
 
 func Write(cfg map[string]string) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
-		return trace.Wrap(err)
+		log.Dev(err)
+		return err
 	}
 
-	file, err := os.OpenFile(configFile, os.O_CREATE|os.O_RDWR, 0640)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	defer file.Close()
+	err = os.WriteFile(configFile, data, 0640)
+	log.Dev(err)
 
-	_, err = file.Write(data)
-
-	return trace.Wrap(err)
+	return err
 }
 
 func Read() ([]byte, error) {
@@ -60,7 +63,8 @@ func Read() ([]byte, error) {
 		if os.IsNotExist(err) {
 			err = Write(defaultCfg)
 		} else {
-			return nil, trace.Wrap(err)
+			log.Dev(err)
+			return nil, err
 		}
 	}
 	if err != nil {
@@ -68,10 +72,9 @@ func Read() ([]byte, error) {
 	}
 
 	data, err := os.ReadFile(configFile)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return data, nil
+	log.Dev(err)
+
+	return data, err
 }
 
 func Get() (map[string]string, error) {
@@ -81,10 +84,9 @@ func Get() (map[string]string, error) {
 	}
 	res := map[string]string{}
 	err = json.Unmarshal(data, &res)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return res, nil
+	log.Dev(err)
+
+	return res, err
 }
 
 func Domain() string {
@@ -97,4 +99,11 @@ func Domain() string {
 	}
 
 	return enDomain
+}
+
+var CodeLangExtensionDic = map[string]string{
+	CodeLangGo:     ".go",
+	CodeLangJava:   ".java",
+	CodeLangPython: ".py",
+	// TODO: add other language mappings
 }

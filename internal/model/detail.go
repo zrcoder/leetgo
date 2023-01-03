@@ -1,11 +1,16 @@
 package model
 
+import (
+	"encoding/json"
+	"strings"
+)
+
 type Question struct {
 	// redefined
-	FrontendQuestionID string `json:"frontend_question_id"`
-	Title              string `json:"title"`
-	Referer            string `json:"referer"`
-	Difficulty         string `json:"difficulty"`
+	Id         string `json:"id"`
+	Title      string `json:"title"`
+	Referer    string `json:"referer"`
+	Difficulty string `json:"difficulty"`
 
 	// original
 	QuestionID        string `json:"questionId"`
@@ -16,6 +21,13 @@ type Question struct {
 	EnableRunCode     bool   `json:"enableRunCode"`
 	MetaData          string `json:"metaData"`
 	TranslatedContent string `json:"translatedContent"`
+}
+
+func (q *Question) ParseCodes() ([]*Code, error) {
+	q.CodeDefinition = strings.ReplaceAll(q.CodeDefinition, `\\n`, `\n`)
+	res := []*Code{}
+	err := json.Unmarshal([]byte(q.CodeDefinition), &res)
+	return res, err
 }
 
 // Code the struct of leetcode codes.

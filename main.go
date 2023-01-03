@@ -13,6 +13,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name:   "leetgo",
+		Usage:  "my app for Leetcode",
 		Action: action,
 		Commands: []*cli.Command{
 			cmds.Config,
