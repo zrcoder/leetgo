@@ -10,8 +10,10 @@ import (
 	"github.com/zrcoder/leetgo/internal/render"
 )
 
+var app *cli.App
+
 func main() {
-	app := &cli.App{
+	app = &cli.App{
 		Name:   "leetgo",
 		Usage:  "my app for Leetcode",
 		Action: action,
@@ -20,6 +22,7 @@ func main() {
 			cmds.Search,
 			cmds.Pick,
 			cmds.Update,
+			cmds.Submit,
 		},
 	}
 
@@ -29,12 +32,7 @@ func main() {
 }
 
 func action(context *cli.Context) error {
-	// TODO: help info
-	md := `
-## leetgo
-
-My cli app to interact with Leetcode.
-`
+	md, _ := app.ToMarkdown()
 	fmt.Println(render.MarkDown(md))
 	return nil
 }

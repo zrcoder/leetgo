@@ -2,8 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/zellyn/kooky"
+	_ "github.com/zellyn/kooky/browser/all"
 
 	"github.com/zrcoder/leetgo/internal/log"
 )
@@ -21,6 +26,14 @@ const (
 	CodeLangPython    = "python"
 	DefaultCodeLang   = CodeLangGo
 	cnLanguage        = "cn"
+
+	TokenKey   = "csrftoken"
+	SessionKey = "LEETCODE_SESSION"
+
+	cnTokenFlag   = "cnToken"
+	cnSessionFlag = "cnSession"
+	enTokenFlag   = "enToken"
+	enSessionFlag = "enSession"
 
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
@@ -45,15 +58,9 @@ var defaultCfg = map[string]string{
 }
 
 func Write(cfg map[string]string) error {
-	data, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		log.Dev(err)
-		return err
-	}
-
-	err = os.WriteFile(configFile, data, 0640)
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	err := os.WriteFile(configFile, data, 0640)
 	log.Dev(err)
-
 	return err
 }
 
@@ -98,7 +105,6 @@ func Domain() string {
 	if info[LangKey] == cnLanguage {
 		return cnDomain
 	}
-
 	return enDomain
 }
 
@@ -107,4 +113,84 @@ var CodeLangExtensionDic = map[string]string{
 	CodeLangJava:   ".java",
 	CodeLangPython: ".py",
 	// TODO: add other language mappings
+}
+
+func GetCredentials() (string, string, error) {
+	log.Dev("get credentials from config")
+	cfg, err := Get()
+	if err != nil {
+		return "", "", err
+	}
+
+	var domain, token, session string
+	if cfg[LangKey] == cnLanguage {
+		domain = strings.TrimPrefix(cnDomain, "https://")
+		token = cfg[cnTokenFlag]
+		session = cfg[cnSessionFlag]
+	} else {
+		strings.TrimPrefix(enDomain, "https://")
+		token = cfg[enTokenFlag]
+		session = cfg[enSessionFlag]
+	}
+	if token != "" && session != "" {
+		return token, session, nil
+	}
+
+	token, session, err = getCredentialsFromBrowser(domain)
+	if err != nil {
+		return "", "", err
+	}
+
+	if cfg[LangKey] == cnLanguage {
+		cfg[cnTokenFlag] = token
+		cfg[cnSessionFlag] = session
+	} else {
+		cfg[enTokenFlag] = token
+		cfg[enSessionFlag] = session
+	}
+	return token, session, Write(cfg)
+}
+
+func UpdateCredentials() error {
+	cfg, err := Get()
+	if err != nil {
+		return err
+	}
+	domain := strings.TrimPrefix(enDomain, "https://")
+	if cfg[LangKey] == cnLanguage {
+		domain = strings.TrimPrefix(cnDomain, "https://")
+	}
+	token, session, err := getCredentialsFromBrowser(domain)
+	if err != nil {
+		return err
+	}
+
+	if cfg[LangKey] == DefaultLanguage {
+		cfg[enTokenFlag] = token
+		cfg[enSessionFlag] = session
+	} else {
+		cfg[cnTokenFlag] = token
+		cfg[cnSessionFlag] = session
+	}
+	return Write(cfg)
+}
+
+func getCredentialsFromBrowser(domain string) (string, string, error) {
+	log.Dev("get credentials from browser")
+	tokenCookies := kooky.ReadCookies(
+		kooky.Valid,
+		kooky.DomainContains(domain),
+		kooky.Name(TokenKey),
+	)
+	sessionCookies := kooky.ReadCookies(
+		kooky.Valid,
+		kooky.DomainContains(domain),
+		kooky.Name(SessionKey),
+	)
+	if len(sessionCookies) == 0 || len(tokenCookies) == 0 {
+		err := errors.New("failed to get credentials")
+		log.Dev(err)
+		return "", "", err
+	}
+	return tokenCookies[0].Value, sessionCookies[0].Value, nil
 }

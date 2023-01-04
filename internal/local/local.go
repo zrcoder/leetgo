@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cweill/gotests"
 
@@ -16,12 +17,17 @@ import (
 
 var (
 	ErrNotCached = errors.New("not cached in local yet")
+	ErrNotFound  = errors.New("not found in local")
 )
 
 const (
 	listFileFullName   = "list.json"
 	readmeFileFullName = "readme.md"
 	codeFileName       = "solution" // for generated code file name, for example: solution.go, solution_test.go
+
+	codeFlagMeta  = "// [QUESTION META] don't modify : "
+	codeFlagBegin = "// [BEGIN leetcode submit region] don't modify"
+	codeFlagEnd   = "// [END leetcode submit region] don't modify"
 )
 
 /*
@@ -154,9 +160,19 @@ func Write(sp *model.StatStatusPair, question *model.Question, mdData []byte) (s
 	currentCodeLang := cfg[config.CodeLangKey]
 	fileExtension := config.CodeLangExtensionDic[currentCodeLang]
 	codePath := filepath.Join(dir, codeFileName+fileExtension)
+
 	for _, c := range codes {
 		if c.Value == currentCodeLang {
-			content := genCodeContent(currentCodeLang, c.DefaultCode)
+			var content string
+			switch currentCodeLang {
+			case config.CodeLangGo, config.CodeLangGoShort:
+				content = fmt.Sprintf("package leetgo\n\n%s%s %s %s\n%s\n%s\n%s",
+					codeFlagMeta, question.QuestionID, sp.Stat.QuestionTitleSlug, c.Value, codeFlagBegin, c.DefaultCode, codeFlagEnd)
+			default:
+				// TODO: adapt every language leetcode supported
+				content = fmt.Sprintf("%s %s %s\n%s\n%s\n%s\n%s",
+					codeFlagMeta, question.QuestionID, sp.Stat.QuestionTitleSlug, c.Value, codeFlagBegin, c.DefaultCode, codeFlagEnd)
+			}
 			err = os.WriteFile(codePath, []byte(content), 0640)
 			if err != nil {
 				log.Dev(err)
@@ -192,6 +208,78 @@ func Write(sp *model.StatStatusPair, question *model.Question, mdData []byte) (s
 	}
 
 	return dir, nil
+}
+
+func GetAnswer(id string) (*model.SubmitRequest, error) {
+	dir, err := getProjectLangCodeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	pattern := filepath.Join(dir, id+"-*", codeFileName+".*")
+	matches, _ := filepath.Glob(pattern)
+	log.Dev(pattern)
+	log.Dev("matches:", matches)
+	if len(matches) == 0 {
+		log.Dev(ErrNotFound)
+		return nil, ErrNotFound
+	}
+
+	path := matches[0]
+	data, err := os.ReadFile(path)
+	if err != nil {
+		log.Dev(err)
+		return nil, err
+	}
+
+	return parseAnswer(data, path)
+}
+
+func parseAnswer(data []byte, path string) (*model.SubmitRequest, error) {
+	content := string(data)
+	log.Dev("answer:\n", content)
+	errFlagParse := fmt.Errorf("cannot parse question id, the flags may be deleted, please check the content of %s", path)
+	index := strings.Index(content, codeFlagMeta)
+	if index == -1 {
+		log.Dev("no id flag found")
+		return nil, errFlagParse
+	}
+	content = content[index+len(codeFlagMeta):]
+	index = strings.Index(content, "\n")
+	if index == -1 {
+		log.Dev("no \\n found")
+		return nil, fmt.Errorf("cannot parse content, please check the content of %s", path)
+	}
+	meta := content[:index]
+	metaArr := strings.Fields(meta)
+	log.Dev("meta:", metaArr)
+	if len(metaArr) != 3 {
+		log.Dev("meta:", metaArr)
+		log.Dev("no expected question meta data")
+		return nil, errFlagParse
+	}
+	index = strings.Index(content, codeFlagBegin)
+	if index == -1 {
+		log.Dev("no begin flag found")
+		return nil, errFlagParse
+	}
+	endIndex := strings.Index(content, codeFlagEnd)
+	if endIndex == -1 {
+		log.Dev("no end flag found")
+		return nil, errFlagParse
+	}
+
+	answer := content[index+len(codeFlagBegin) : endIndex]
+	log.Dev("typed code:\n", answer)
+	res := &model.SubmitRequest{
+		QuestionID: metaArr[0],
+		Name:       metaArr[1],
+		Lang:       metaArr[2],
+		TestMode:   "false",
+		TypedCode:  answer,
+	}
+
+	return res, nil
 }
 
 func getAllFilePath() (string, error) {
@@ -239,18 +327,4 @@ func parseProjectLangCodeDir(cfg map[string]string) (string, error) {
 	err = os.MkdirAll(dir, 0777)
 	log.Dev(err)
 	return dir, err
-}
-
-func genCodeContent(lang, code string) string {
-	const (
-		beginFlag = "// [BEGIN leetcode submit region] don't modify"
-		endFlag   = "// [END leetcode submit region] don't modify"
-	)
-	switch lang {
-	case config.CodeLangGo, config.CodeLangGoShort:
-		return fmt.Sprintf("package leetgo\n\n%s\n%s\n%s", beginFlag, code, endFlag)
-	default:
-		// TODO: adapt every language leetcode surpported
-		return fmt.Sprintf("%s\n%s\n%s", beginFlag, code, endFlag)
-	}
 }

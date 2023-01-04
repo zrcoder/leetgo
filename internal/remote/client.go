@@ -3,6 +3,7 @@ package remote
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,35 +13,8 @@ import (
 	"github.com/zrcoder/leetgo/internal/model"
 )
 
-func GetList() (*model.List, error) {
-	url := fmt.Sprintf("%s/api/problems/all", config.Domain())
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	res := &model.List{}
-	err = json.Unmarshal(data, res)
-	log.Dev(err)
-	return res, err
-}
-
-func Get(sp *model.StatStatusPair) (*model.Question, error) {
-	query := `
+const (
+	questionQueryTmp = `
 query getQuestionDetail($titleSlug: String!) {
   isCurrentUserAuthenticated
   question(titleSlug: $titleSlug) {
@@ -54,38 +28,14 @@ query getQuestionDetail($titleSlug: String!) {
     translatedContent
   }
 }`
+)
 
-	body := map[string]any{
-		"query": query,
-		"variables": map[string]string{
-			"titleSlug": sp.Stat.QuestionTitleSlug,
-		},
-		"operationName": "getQuestionDetail",
-	}
-	jbody, err := json.Marshal(body)
+func GetList() (*model.List, error) {
+	uri := fmt.Sprintf("%s/api/problems/all", config.Domain())
+	resp, err := http.Get(uri)
 	if err != nil {
 		log.Dev(err)
 		return nil, err
-	}
-	domain := config.Domain()
-	url := fmt.Sprintf("%s/graphql", domain)
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jbody))
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-	referer := fmt.Sprintf("%s/problems/%s", domain, sp.Stat.QuestionTitleSlug)
-	req.Header.Set("Referer", referer)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cache-Control", "no-cache")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		log.Dev("request failed")
-		return nil, fmt.Errorf("GetQuestion got status %d", resp.StatusCode)
 	}
 
 	data, err := io.ReadAll(resp.Body)
@@ -93,11 +43,47 @@ query getQuestionDetail($titleSlug: String!) {
 		log.Dev(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
+
+	res := &model.List{}
+	err = json.Unmarshal(data, res)
+	log.Dev(err)
+	return res, err
+}
+
+func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
+	body := map[string]any{
+		"query": questionQueryTmp,
+		"variables": map[string]string{
+			"titleSlug": sp.Stat.QuestionTitleSlug,
+		},
+		"operationName": "getQuestionDetail",
+	}
+	reqBody, _ := json.Marshal(body)
+	domain := config.Domain()
+	uri := fmt.Sprintf("%s/graphql", domain)
+	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Dev(err)
+		return nil, err
+	}
+	referer := fmt.Sprintf("%s/problems/%s", domain, sp.Stat.QuestionTitleSlug)
+	setCommonHeaders(req, referer)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Dev(err)
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("querey question failed, response status: %s", resp.Status)
+		log.Dev(err)
+		return nil, err
+	}
 
 	res := &model.GetQuestionResponse{}
-	if err = json.Unmarshal(data, res); err != nil {
-		log.Dev(string(data))
+	err = json.NewDecoder(resp.Body).Decode(res)
+	if err != nil {
 		log.Dev(err)
 		return nil, err
 	}
@@ -107,4 +93,65 @@ query getQuestionDetail($titleSlug: String!) {
 	question.Referer = referer
 	question.Difficulty = sp.Difficulty.String()
 	return question, nil
+}
+
+func Submit(submitReq *model.SubmitRequest, retry int) (int, error) {
+	const limitedRetries = 3
+	if retry == limitedRetries {
+		return 0, fmt.Errorf("failed after retried %d times", retry)
+	}
+	uri := fmt.Sprintf("%s/problems/%s/submit", config.Domain(), submitReq.Name)
+	body, _ := json.Marshal(submitReq)
+	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewBuffer(body))
+	if err != nil {
+		log.Dev(err)
+		return 0, err
+	}
+
+	if _, _, err = config.GetCredentials(); err != nil {
+		return 0, err
+	}
+
+	setCommonHeaders(req, uri)
+	log.Dev("~~~~~")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Dev(err)
+		return 0, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode/100 == 4 {
+		log.Dev(resp.StatusCode, req.Method, uri, string(body))
+		log.Dev("auth failed, should update the credentials")
+		err = config.UpdateCredentials()
+		if err != nil {
+			return 0, err
+		}
+		return Submit(submitReq, retry+1)
+	}
+	log.Dev(resp.Status)
+	if resp.StatusCode != http.StatusOK {
+		log.Dev("request:", req.Method, uri)
+		log.Dev(string(body))
+		return 0, errors.New(resp.Status)
+	}
+
+	res := &model.SubmitResult{}
+	err = json.NewDecoder(resp.Body).Decode(&res)
+	if err != nil {
+		log.Dev(err)
+		return 0, err
+	}
+	return res.SubmissionID, nil
+}
+
+func setCommonHeaders(req *http.Request, referer string) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Referer", referer)
+
+	token, session, _ := config.GetCredentials()
+	req.Header.Set("X-CsrfToken", token)
+	req.Header.Set("Cookie", fmt.Sprintf("LEETCODE_SESSION=%s; csrftoken=%s", session, token))
 }

@@ -11,13 +11,15 @@ import (
 	"github.com/zrcoder/leetgo/internal/render"
 )
 
+var ErrNeedQuestionId = errors.New("need question id")
+
 var Pick = &cli.Command{
 	Name:      "pick",
 	Usage:     "pick a question by id",
 	UsageText: "leetgo pick 127",
 	Action: func(context *cli.Context) error {
 		if context.Args().Len() == 0 {
-			return errors.New("need question id")
+			return ErrNeedQuestionId
 		}
 
 		id := strings.Join(context.Args().Slice(), " ")

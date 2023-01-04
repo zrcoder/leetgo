@@ -46,7 +46,7 @@ func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) ([]
 		return nil, "", err
 	}
 
-	question, err := remote.Get(&sp)
+	question, err := remote.GetQuestion(&sp)
 	if err != nil {
 		return nil, "", err
 	}
