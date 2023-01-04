@@ -7,15 +7,16 @@ import (
 
 	h2md "github.com/JohannesKaufmann/html-to-markdown"
 
-	"github.com/zrcoder/leetgo/internal/client"
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
+	"github.com/zrcoder/leetgo/internal/remote"
 )
 
 func Query(id string) ([]byte, string, error) {
 	mdData, path, err := local.Read(id)
 	if err == nil {
+		log.Dev("got markdown data from local")
 		return mdData, path, nil
 	}
 
@@ -23,25 +24,29 @@ func Query(id string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	all, err := getAll()
+	list, err := getList()
 	if err != nil {
 		log.Dev(err)
 		return nil, "", err
 	}
 
-	sp, ok := all[id]
+	return QueryRemote(list, id)
+}
+
+func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) ([]byte, string, error) {
+	sp, ok := statStatusPairs[id]
 	if !ok {
-		err = fmt.Errorf("not found by id: %s", id)
+		err := fmt.Errorf("not found by id: %s", id)
 		log.Dev(err)
 		return nil, "", err
 	}
 	if sp.PaidOnly {
-		err = fmt.Errorf("[%s. %s] is locked!", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
+		err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
 		log.Dev(err)
 		return nil, "", err
 	}
 
-	question, err := client.Get(&sp)
+	question, err := remote.Get(&sp)
 	if err != nil {
 		return nil, "", err
 	}
@@ -51,12 +56,13 @@ func Query(id string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	path, _ = local.Write(&sp, question, []byte(data))
-	return []byte(data), path, nil
+	path, err := local.Write(&sp, question, []byte(data))
+	log.Dev(err)
+	return []byte(data), path, err
 }
 
 func Search(keyWords string) ([]model.StatStatusPair, error) {
-	all, err := getAll()
+	all, err := getList()
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +86,8 @@ func Search(keyWords string) ([]model.StatStatusPair, error) {
 	return res, nil
 }
 
-func getAll() (map[string]model.StatStatusPair, error) {
-	res, err := local.ReadAll()
+func getList() (map[string]model.StatStatusPair, error) {
+	res, err := local.ReadList()
 	if err == nil {
 		return res, nil
 	}
@@ -89,23 +95,13 @@ func getAll() (map[string]model.StatStatusPair, error) {
 		return nil, err
 	}
 
-	var all *model.All
-	all, err = client.GetAll()
+	var list *model.List
+	list, err = remote.GetList()
 	if err != nil {
 		return nil, err
 	}
 
-	res = make(map[string]model.StatStatusPair, len(all.StatStatusPairs))
-	for _, sp := range all.StatStatusPairs {
-		id := sp.Stat.GetFrontendQuestionID()
-		sp.Stat.CalculatedID = id
-		res[id] = sp
-	}
-
-	err = local.WriteAll(res)
-	log.Dev(err)
-
-	return res, nil
+	return local.WriteList(list)
 }
 
 func parseMarkdown(question *model.Question) (string, error) {

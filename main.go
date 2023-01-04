@@ -19,6 +19,7 @@ func main() {
 			cmds.Config,
 			cmds.Search,
 			cmds.Pick,
+			cmds.Update,
 		},
 	}
 

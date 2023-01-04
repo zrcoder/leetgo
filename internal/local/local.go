@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cweill/gotests"
 
@@ -16,15 +14,50 @@ import (
 	"github.com/zrcoder/leetgo/internal/model"
 )
 
-const (
-	allFile = "all.json"
-)
-
 var (
-	ErrNotCached = errors.New("not cached yet")
+	ErrNotCached = errors.New("not cached in local yet")
 )
 
-func ReadAll() (map[string]model.StatStatusPair, error) {
+const (
+	listFileFullName   = "list.json"
+	readmeFileFullName = "readme.md"
+	codeFileName       = "solution" // for generated code file name, for example: solution.go, solution_test.go
+)
+
+/*
+we will construct a project, the directory struct like:
+
+.
+├── cn
+│   ├── golang
+│   │   ├── 27-remove-element
+│   │   │   ├── readme.md
+│   │   │   ├── solution.go
+│   │   │   └── solution_test.go
+│   │   └── 8-string-to-integer-atoi
+│   │       ├── readme.md
+│   │       ├── solution.go
+│   │       └── solution_test.go
+│   └── list.json
+└── en
+    ├── golang
+    │   └── 1-two-sum
+    │       ├── readme.md
+    │       ├── solution.go
+    │       └── solution_test.go
+    └── java
+        ├── 1-two-sum
+        │   ├── readme.md
+        │   └── solution.java
+        ├── 1004-max-consecutive-ones-iii
+        │   ├── readme.md
+        │   └── solution.java
+        └── 2-add-two-numbers
+            ├── readme.md
+            └── solution.java
+*/
+
+func ReadList() (map[string]model.StatStatusPair, error) {
 	path, err := getAllFilePath()
 	if err != nil {
 		return nil, err
@@ -33,7 +66,7 @@ func ReadAll() (map[string]model.StatStatusPair, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Dev("all.json", ErrNotCached)
+			log.Dev(listFileFullName, ErrNotCached)
 			return nil, ErrNotCached
 		}
 		log.Dev(err)
@@ -46,60 +79,44 @@ func ReadAll() (map[string]model.StatStatusPair, error) {
 	return res, err
 }
 
-func WriteAll(all map[string]model.StatStatusPair) error {
+func WriteList(list *model.List) (map[string]model.StatStatusPair, error) {
 	path, err := getAllFilePath()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	data, err := json.Marshal(all)
-	if err != nil {
-		log.Dev(err)
-		return err
+	res := make(map[string]model.StatStatusPair, len(list.StatStatusPairs))
+	for _, sp := range list.StatStatusPairs {
+		id := sp.Stat.GetFrontendQuestionID()
+		sp.Stat.CalculatedID = id
+		res[id] = sp
 	}
 
+	data, _ := json.Marshal(res)
 	err = os.WriteFile(path, data, 0640)
 	log.Dev(err)
-	return err
+	return res, err
 }
 
 func Read(id string) ([]byte, string, error) {
-	log.Dev("begin to search question in cache, id:", id)
+	log.Dev("begin to search question in local files, id:", id)
 
-	dir, err := getDir()
+	dir, err := getProjectLangCodeDir()
 	if err != nil {
 		return nil, "", err
 	}
 
-	log.Dev("begin to walk:", dir)
-	var data []byte
-	resPath := ""
-
-	expectedPrefix := id + "-"
-	err = filepath.Walk(dir, func(path string, info fs.FileInfo, err1 error) error {
-		if info.IsDir() {
-			return nil
-		}
-		name := info.Name()
-		log.Dev("current file is:", name)
-		if strings.HasPrefix(name, expectedPrefix) && strings.HasSuffix(name, ".md") {
-			log.Dev("found the cached markdown file for question", id)
-			data, err = os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			resPath = path
-			return filepath.SkipDir
-		}
-		return nil
-	})
-
-	if err == nil && data == nil {
-		log.Dev("Not found in cache, qustion", id)
+	matches, _ := filepath.Glob(filepath.Join(dir, id+"-*"))
+	log.Dev("matches:", matches)
+	if len(matches) == 0 {
+		log.Dev(ErrNotCached)
 		return nil, "", ErrNotCached
 	}
+
+	path := matches[0]
+	data, err := os.ReadFile(filepath.Join(path, readmeFileFullName))
 	log.Dev(err)
-	return data, resPath, err
+	return data, path, err
 }
 
 func Write(sp *model.StatStatusPair, question *model.Question, mdData []byte) (string, error) {
@@ -108,23 +125,20 @@ func Write(sp *model.StatStatusPair, question *model.Question, mdData []byte) (s
 		return "", err
 	}
 
-	dir, err := parseDir(cfg)
+	dir, err := parseProjectLangCodeDir(cfg)
 	if err != nil {
 		return "", err
 	}
 
 	title := fmt.Sprintf("%s-%s", sp.Stat.CalculatedID, sp.Stat.QuestionTitleSlug)
-	mdPath := filepath.Join(dir, title+".md")
-	currentCodeLang := cfg[config.CodeLangKey]
-	fileExtension := config.CodeLangExtensionDic[currentCodeLang]
-	codeDir := filepath.Join(dir, cfg[config.CodeLangKey])
-	err = os.MkdirAll(codeDir, 0777)
+	dir = filepath.Join(dir, title)
+	err = os.MkdirAll(dir, 0777)
 	if err != nil {
 		log.Dev(err)
 		return "", err
 	}
-	codePath := filepath.Join(codeDir, title+fileExtension)
 
+	mdPath := filepath.Join(dir, readmeFileFullName)
 	err = os.WriteFile(mdPath, mdData, 0640)
 	if err != nil {
 		log.Dev(err)
@@ -133,60 +147,67 @@ func Write(sp *model.StatStatusPair, question *model.Question, mdData []byte) (s
 
 	codes, err := question.ParseCodes()
 	if err != nil {
+		log.Dev(err)
 		return "", err
 	}
 
+	currentCodeLang := cfg[config.CodeLangKey]
+	fileExtension := config.CodeLangExtensionDic[currentCodeLang]
+	codePath := filepath.Join(dir, codeFileName+fileExtension)
 	for _, c := range codes {
 		if c.Value == currentCodeLang {
-			const beginFlag = "//leetcode submit region begin(Prohibit modification and deletion)"
-			const endFlag = "//leetcode submit region end(Prohibit modification and deletion)\n"
-			content := fmt.Sprintf("package leetgo\n\n%s\n%s\n%s", beginFlag, c.DefaultCode, endFlag)
+			content := genCodeContent(currentCodeLang, c.DefaultCode)
 			err = os.WriteFile(codePath, []byte(content), 0640)
 			if err != nil {
 				log.Dev(err)
 				return "", err
 			}
-
-			if c.Value != config.CodeLangGo {
-				return mdPath, nil
+			if c.Value != config.CodeLangGo && c.Value != config.CodeLangGoShort {
+				return dir, nil
 			}
 
-			tess, err := gotests.GenerateTests(codePath, nil)
+			testPath := filepath.Join(dir, codeFileName+"_test.go")
+			if _, err = os.Stat(testPath); err == nil {
+				err = os.Remove(testPath) // should remove the old test file when update
+				if err != nil {
+					log.Dev(err)
+					return "", err
+				}
+			}
+			tests, err := gotests.GenerateTests(codePath, nil)
 			if err != nil {
 				log.Dev(err)
 				return "", err
 			}
-			if len(tess) == 0 {
-				return "", fmt.Errorf("failed to generate test")
+			log.Dev("generated", len(tests), "tests")
+			if len(tests) == 0 {
+				err = errors.New("no tests generated, may the test file has already exist")
+				log.Dev(err)
+				return "", err
 			}
-
 			sample := fmt.Sprintf("/* Sample test case:\n%s\n*/\n", question.SampleTestCase)
-			data := append(tess[0].Output, []byte(sample)...)
-			testPath := filepath.Join(dir, cfg[config.CodeLangKey], title+"_test.go")
-			return mdPath, os.WriteFile(testPath, data, 0640)
+			data := append(tests[0].Output, []byte(sample)...)
+			return dir, os.WriteFile(testPath, data, 0640)
 		}
 	}
 
-	return mdPath, nil
+	return dir, nil
 }
 
 func getAllFilePath() (string, error) {
-	dir, err := getDir()
+	dir, err := getProjectLangDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, allFile), nil
+	return filepath.Join(dir, listFileFullName), nil
 }
 
-func getDir() (string, error) {
+func getProjectLangDir() (string, error) {
 	cfg, err := config.Get()
 	if err != nil {
 		return "", err
 	}
-	return parseDir(cfg)
-}
 
-func parseDir(cfg map[string]string) (string, error) {
 	project, err := filepath.Abs(cfg[config.ProjectKey])
 	if err != nil {
 		log.Dev(err)
@@ -197,4 +218,39 @@ func parseDir(cfg map[string]string) (string, error) {
 	err = os.MkdirAll(dir, 0777)
 	log.Dev(err)
 	return dir, err
+}
+
+func getProjectLangCodeDir() (string, error) {
+	cfg, err := config.Get()
+	if err != nil {
+		return "", err
+	}
+	return parseProjectLangCodeDir(cfg)
+}
+
+func parseProjectLangCodeDir(cfg map[string]string) (string, error) {
+	project, err := filepath.Abs(cfg[config.ProjectKey])
+	if err != nil {
+		log.Dev(err)
+		return "", err
+	}
+
+	dir := filepath.Join(project, cfg[config.LangKey], cfg[config.CodeLangKey])
+	err = os.MkdirAll(dir, 0777)
+	log.Dev(err)
+	return dir, err
+}
+
+func genCodeContent(lang, code string) string {
+	const (
+		beginFlag = "// [BEGIN leetcode submit region] don't modify"
+		endFlag   = "// [END leetcode submit region] don't modify"
+	)
+	switch lang {
+	case config.CodeLangGo, config.CodeLangGoShort:
+		return fmt.Sprintf("package leetgo\n\n%s\n%s\n%s", beginFlag, code, endFlag)
+	default:
+		// TODO: adapt every language leetcode surpported
+		return fmt.Sprintf("%s\n%s\n%s", beginFlag, code, endFlag)
+	}
 }

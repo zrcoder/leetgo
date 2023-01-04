@@ -68,6 +68,7 @@ func Read() ([]byte, error) {
 		}
 	}
 	if err != nil {
+		log.Dev(err)
 		return nil, err
 	}
 

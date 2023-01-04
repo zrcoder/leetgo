@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-type All struct {
+type List struct {
 	StatStatusPairs []StatStatusPair `json:"stat_status_pairs"`
 }
 

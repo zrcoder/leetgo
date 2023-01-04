@@ -1,2 +1,4 @@
 # leetgo
-Cli app to interact with Leetcode.
+Cli APP for Leetcode.
+
+

@@ -1,4 +1,4 @@
-package client
+package remote
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/zrcoder/leetgo/internal/model"
 )
 
-func GetAll() (*model.All, error) {
+func GetList() (*model.List, error) {
 	url := fmt.Sprintf("%s/api/problems/all", config.Domain())
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -33,7 +33,7 @@ func GetAll() (*model.All, error) {
 	}
 	defer resp.Body.Close()
 
-	res := &model.All{}
+	res := &model.List{}
 	err = json.Unmarshal(data, res)
 	log.Dev(err)
 	return res, err
