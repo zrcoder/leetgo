@@ -23,15 +23,12 @@ var Pick = &cli.Command{
 		}
 
 		id := strings.Join(context.Args().Slice(), " ")
-		mdData, path, err := mgr.Query(id)
+		question, err := mgr.Query(id)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(render.MarkDown(string(mdData)))
-		if path != "" {
-			fmt.Println(render.Successf("Stored in %s\n", path))
-		}
+		fmt.Println(render.MarkDown(question.MdContent))
 
 		return nil
 	},

@@ -35,7 +35,7 @@ func searchAction(context *cli.Context) error {
 	buf.WriteString("| --- | ----- | ---------- | ------ |\n")
 	rowTmp := "| %s  | %s    | %s         | %s     |\n"
 	lockCnt := 0
-	lastQustion := ""
+	lastQuestion := ""
 	for _, sp := range sps {
 		locked := ""
 		if sp.PaidOnly {
@@ -44,10 +44,10 @@ func searchAction(context *cli.Context) error {
 		}
 		row := fmt.Sprintf(rowTmp, sp.Stat.CalculatedID, sp.Stat.QuestionTitle, sp.Difficulty.String(), locked)
 		buf.WriteString(row)
-		lastQustion = sp.Stat.CalculatedID
+		lastQuestion = sp.Stat.CalculatedID
 	}
 	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(sps), lockCnt))
-	buf.WriteString(fmt.Sprintf("> pick one? type like: `leetgo pick %s`", lastQustion))
+	buf.WriteString(fmt.Sprintf("> pick one? type like: `leetgo pick %s`", lastQuestion))
 
 	md := buf.String()
 

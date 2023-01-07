@@ -16,24 +16,19 @@ import (
 const (
 	LangKey     = "lang"
 	CodeLangKey = "code"
-	ProjectKey  = "project"
+	CacheDirKey = "directory"
 
-	DefaultProjectDir = "leetgo"
-	DefaultLanguage   = "en"
-	CodeLangGo        = "golang"
-	CodeLangGoShort   = "go"
-	CodeLangJava      = "java"
-	CodeLangPython    = "python"
-	DefaultCodeLang   = CodeLangGo
-	cnLanguage        = "cn"
+	DefaultCacheDir = "leetgo"
+	DefaultLanguage = "en"
+	CodeLangGo      = "golang"
+	CodeLangGoShort = "go"
+	CodeLangJava    = "java"
+	CodeLangPython  = "python"
+	DefaultCodeLang = CodeLangGo
+	cnLanguage      = "cn"
 
 	TokenKey   = "csrftoken"
 	SessionKey = "LEETCODE_SESSION"
-
-	cnTokenFlag   = "cnToken"
-	cnSessionFlag = "cnSession"
-	enTokenFlag   = "enToken"
-	enSessionFlag = "enSession"
 
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
@@ -51,13 +46,21 @@ func init() {
 	configFile = filepath.Join(configDir, configFile)
 }
 
-var defaultCfg = map[string]string{
-	LangKey:     DefaultLanguage,
-	ProjectKey:  DefaultProjectDir,
-	CodeLangKey: DefaultCodeLang,
+type Config struct {
+	Language string `json:"language"`
+	CacheDir string `json:"cacheDir"`
+	CodeLang string `json:"codeLang"`
+	Token    string `json:"token"`
+	Session  string `json:"session"`
 }
 
-func Write(cfg map[string]string) error {
+var defaultCfg = &Config{
+	Language: DefaultLanguage,
+	CacheDir: DefaultCacheDir,
+	CodeLang: DefaultCodeLang,
+}
+
+func Write(cfg *Config) error {
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	err := os.WriteFile(configFile, data, 0640)
 	log.Dev(err)
@@ -85,12 +88,12 @@ func Read() ([]byte, error) {
 	return data, err
 }
 
-func Get() (map[string]string, error) {
+func Get() (*Config, error) {
 	data, err := Read()
 	if err != nil {
 		return nil, err
 	}
-	res := map[string]string{}
+	res := &Config{}
 	err = json.Unmarshal(data, &res)
 	log.Dev(err)
 
@@ -98,11 +101,11 @@ func Get() (map[string]string, error) {
 }
 
 func Domain() string {
-	info, err := Get()
+	cfg, err := Get()
 	if err != nil {
 		return enDomain
 	}
-	if info[LangKey] == cnLanguage {
+	if cfg.Language == cnLanguage {
 		return cnDomain
 	}
 	return enDomain
@@ -122,32 +125,23 @@ func GetCredentials() (string, string, error) {
 		return "", "", err
 	}
 
-	var domain, token, session string
-	if cfg[LangKey] == cnLanguage {
-		domain = strings.TrimPrefix(cnDomain, "https://")
-		token = cfg[cnTokenFlag]
-		session = cfg[cnSessionFlag]
-	} else {
-		strings.TrimPrefix(enDomain, "https://")
-		token = cfg[enTokenFlag]
-		session = cfg[enSessionFlag]
-	}
+	token := cfg.Token
+	session := cfg.Token
 	if token != "" && session != "" {
 		return token, session, nil
 	}
 
+	domain := strings.TrimPrefix(enDomain, "https://")
+	if cfg.Language == cnLanguage {
+		domain = strings.TrimPrefix(cnDomain, "https://")
+	}
 	token, session, err = getCredentialsFromBrowser(domain)
 	if err != nil {
 		return "", "", err
 	}
 
-	if cfg[LangKey] == cnLanguage {
-		cfg[cnTokenFlag] = token
-		cfg[cnSessionFlag] = session
-	} else {
-		cfg[enTokenFlag] = token
-		cfg[enSessionFlag] = session
-	}
+	cfg.Token = token
+	cfg.Session = session
 	return token, session, Write(cfg)
 }
 
@@ -157,7 +151,7 @@ func UpdateCredentials() error {
 		return err
 	}
 	domain := strings.TrimPrefix(enDomain, "https://")
-	if cfg[LangKey] == cnLanguage {
+	if cfg.Language == cnLanguage {
 		domain = strings.TrimPrefix(cnDomain, "https://")
 	}
 	token, session, err := getCredentialsFromBrowser(domain)
@@ -165,13 +159,8 @@ func UpdateCredentials() error {
 		return err
 	}
 
-	if cfg[LangKey] == DefaultLanguage {
-		cfg[enTokenFlag] = token
-		cfg[enSessionFlag] = session
-	} else {
-		cfg[cnTokenFlag] = token
-		cfg[cnSessionFlag] = session
-	}
+	cfg.Token = token
+	cfg.Session = session
 	return Write(cfg)
 }
 

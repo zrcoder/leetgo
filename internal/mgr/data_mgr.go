@@ -5,71 +5,70 @@ import (
 	"sort"
 	"strings"
 
-	h2md "github.com/JohannesKaufmann/html-to-markdown"
-
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func Query(id string) ([]byte, string, error) {
-	mdData, path, err := local.Read(id)
+func Query(id string) (*model.Question, error) {
+	question, err := local.Read(id)
 	if err == nil {
 		log.Dev("got markdown data from local")
-		return mdData, path, nil
+		return question, nil
 	}
 
 	if err != local.ErrNotCached {
-		return nil, "", err
+		return nil, err
 	}
 
 	list, err := getList()
 	if err != nil {
 		log.Dev(err)
-		return nil, "", err
+		return nil, err
 	}
 
 	return QueryRemote(list, id)
 }
 
-func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) ([]byte, string, error) {
+func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) (*model.Question, error) {
 	sp, ok := statStatusPairs[id]
 	if !ok {
 		err := fmt.Errorf("not found by id: %s", id)
 		log.Dev(err)
-		return nil, "", err
+		return nil, err
 	}
 	if sp.PaidOnly {
 		err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
 		log.Dev(err)
-		return nil, "", err
+		return nil, err
 	}
 
 	question, err := remote.GetQuestion(&sp)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	data, err := parseMarkdown(question)
+	err = question.TransformContent()
 	if err != nil {
-		return nil, "", err
+		log.Dev(err)
+		return nil, err
 	}
 
-	path, err := local.Write(&sp, question, []byte(data))
+	err = local.Write(sp.Stat.CalculatedID, question)
 	log.Dev(err)
-	return []byte(data), path, err
+	return question, err
 }
 
 func Search(keyWords string) ([]model.StatStatusPair, error) {
-	all, err := getList()
+	list, err := getList()
 	if err != nil {
 		return nil, err
 	}
-	lower := strings.ToLower(keyWords)
 
+	lower := strings.ToLower(keyWords)
 	var res []model.StatStatusPair
-	for _, sp := range all {
+	for _, sp := range list {
 		title1 := sp.Stat.CalculatedID + " " + strings.ToLower(sp.Stat.QuestionTitle)
 		title2 := sp.Stat.CalculatedID + ". " + strings.ToLower(sp.Stat.QuestionTitle)
 		if strings.Contains(title1, lower) || strings.Contains(title2, lower) {
@@ -102,23 +101,4 @@ func getList() (map[string]model.StatStatusPair, error) {
 	}
 
 	return local.WriteList(list)
-}
-
-func parseMarkdown(question *model.Question) (string, error) {
-	content := question.TranslatedContent
-	if content == "" {
-		content = question.Content
-	}
-	content = strings.ReplaceAll(content, "<sup>", "^")
-	content = strings.ReplaceAll(content, "</sup>", "")
-	content, err := h2md.NewConverter("", true, nil).ConvertString(content)
-	if err != nil {
-		log.Dev(err)
-		return "", err
-	}
-	content = strings.ReplaceAll(content, `\[`, `[`)
-	content = strings.ReplaceAll(content, `\]`, `]`)
-	md := fmt.Sprintf("## [%s. %s](%s) (%s)\n\n%s",
-		question.Id, question.Title, question.Referer, question.Difficulty, content)
-	return md, nil
 }

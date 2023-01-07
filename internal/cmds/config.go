@@ -12,38 +12,46 @@ import (
 )
 
 const (
-	lanShortKey      = "l"
+	langShortKey     = "l"
 	codeLangShortKey = "c"
-	projectShortKey  = "p"
+	cacheDirShortKey = "d"
+
+	langUsage     = "language for the app"
+	codeLangUsage = "programing language to resolve the problems"
+	cacheDirUsage = "cache directory"
 )
+
+var cfg = &config.Config{}
 
 var Config = &cli.Command{
 	Name:      "config",
 	UsageText: "show current config if no flags, use flags to set",
-	Flags:     []cli.Flag{langFlag, codeLangFlag, projectFlag},
+	Flags:     []cli.Flag{langFlag, codeLangFlag, cacheDirFlag},
 	Action:    configAction,
 }
 
 var langFlag = &cli.StringFlag{
-	Name:    config.LangKey,
-	Aliases: []string{lanShortKey},
-	Value:   config.DefaultLanguage,
-
-	Usage: "language for the app",
+	Name:        config.LangKey,
+	Aliases:     []string{langShortKey},
+	Value:       config.DefaultLanguage,
+	Usage:       langUsage,
+	Destination: &cfg.Language,
 }
 
 var codeLangFlag = &cli.StringFlag{
-	Name:    config.CodeLangKey,
-	Aliases: []string{codeLangShortKey},
-	Value:   config.DefaultCodeLang,
-	Usage:   "programing language to resolve the problems",
+	Name:        config.CodeLangKey,
+	Aliases:     []string{codeLangShortKey},
+	Value:       config.DefaultCodeLang,
+	Usage:       codeLangUsage,
+	Destination: &cfg.CodeLang,
 }
 
-var projectFlag = &cli.StringFlag{
-	Name:    config.ProjectKey,
-	Aliases: []string{projectShortKey},
-	Value:   config.DefaultProjectDir,
-	Usage:   "project directory",
+var cacheDirFlag = &cli.StringFlag{
+	Name:        config.CacheDirKey,
+	Aliases:     []string{cacheDirShortKey},
+	Value:       config.DefaultCacheDir,
+	Usage:       cacheDirUsage,
+	Destination: &cfg.CacheDir,
 }
 
 func configAction(context *cli.Context) error {
@@ -59,40 +67,41 @@ func showConfig(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg := map[string]any{}
-	err = json.Unmarshal(data, &cfg)
+	err = json.Unmarshal(data, cfg)
 	if err != nil {
 		return err
 	}
 
 	buf := &strings.Builder{}
-	buf.WriteString("|key|value|\n| --- | --- |\n")
-	for k, v := range cfg {
-		buf.WriteString(fmt.Sprintf("|%s|%v|\n", k, v))
-	}
-
-	fmt.Println(render.Success("Current config:"))
-	//md := fmt.Sprintf("Current config:\n\n---json\n\n```json\n%s\n```\n\n---json", data)
+	buf.WriteString("|item|description|\n| --- | --- |\n")
+	buf.WriteString(fmt.Sprintf("|%s|%v|\n", cfg.Language, langUsage))
+	buf.WriteString(fmt.Sprintf("|%s|%v|\n", cfg.CodeLang, codeLangUsage))
+	buf.WriteString(fmt.Sprintf("|%s|%v|\n", cfg.CacheDir, cacheDirUsage))
+	fmt.Println(render.Success("CURRENT:"))
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil
 }
 
 func setConfig(context *cli.Context, localFlags []string) error {
-	info, err := config.Get()
+	curCfg, err := config.Get()
 	if err != nil {
 		return err
 	}
+	adapt(curCfg, cfg)
+	if curCfg.CodeLang == config.CodeLangGoShort {
+		curCfg.CodeLang = config.CodeLangGo
+	}
+	return config.Write(curCfg)
+}
 
-	for _, key := range localFlags {
-		// ignore the short flags
-		if _, exist := info[key]; !exist {
-			continue
-		}
-		// take the long flags
-		info[key] = context.String(key)
+func adapt(dest, src *config.Config) {
+	if src.Language != "" {
+		dest.Language = src.Language
 	}
-	if info[config.CodeLangKey] == config.CodeLangGoShort {
-		info[config.CodeLangKey] = config.CodeLangGo
+	if src.CacheDir != "" {
+		dest.CacheDir = src.CacheDir
 	}
-	return config.Write(info)
+	if src.CodeLang != "" {
+		dest.CodeLang = src.CodeLang
+	}
 }

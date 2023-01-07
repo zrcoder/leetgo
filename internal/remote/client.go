@@ -3,7 +3,6 @@ package remote
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -95,63 +94,8 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	return question, nil
 }
 
-func Submit(submitReq *model.SubmitRequest, retry int) (int, error) {
-	const limitedRetries = 3
-	if retry == limitedRetries {
-		return 0, fmt.Errorf("failed after retried %d times", retry)
-	}
-	uri := fmt.Sprintf("%s/problems/%s/submit", config.Domain(), submitReq.Name)
-	body, _ := json.Marshal(submitReq)
-	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewBuffer(body))
-	if err != nil {
-		log.Dev(err)
-		return 0, err
-	}
-
-	if _, _, err = config.GetCredentials(); err != nil {
-		return 0, err
-	}
-
-	setCommonHeaders(req, uri)
-	log.Dev("~~~~~")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Dev(err)
-		return 0, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode/100 == 4 {
-		log.Dev(resp.StatusCode, req.Method, uri, string(body))
-		log.Dev("auth failed, should update the credentials")
-		err = config.UpdateCredentials()
-		if err != nil {
-			return 0, err
-		}
-		return Submit(submitReq, retry+1)
-	}
-	log.Dev(resp.Status)
-	if resp.StatusCode != http.StatusOK {
-		log.Dev("request:", req.Method, uri)
-		log.Dev(string(body))
-		return 0, errors.New(resp.Status)
-	}
-
-	res := &model.SubmitResult{}
-	err = json.NewDecoder(resp.Body).Decode(&res)
-	if err != nil {
-		log.Dev(err)
-		return 0, err
-	}
-	return res.SubmissionID, nil
-}
-
 func setCommonHeaders(req *http.Request, referer string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Referer", referer)
-
-	token, session, _ := config.GetCredentials()
-	req.Header.Set("X-CsrfToken", token)
-	req.Header.Set("Cookie", fmt.Sprintf("LEETCODE_SESSION=%s; csrftoken=%s", session, token))
+	req.Header.Add("Referer", referer)
 }
