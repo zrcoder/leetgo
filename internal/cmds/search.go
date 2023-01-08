@@ -2,13 +2,12 @@ package cmds
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
-	"github.com/zrcoder/leetgo/internal/mgr"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/internal/comp"
 )
 
 var Search = &cli.Command{
@@ -17,43 +16,6 @@ var Search = &cli.Command{
 	UsageText: "leetgo search 227",
 	Flags:     []cli.Flag{idFlag, keyFlag},
 	Action:    searchAction,
-}
-
-func searchAction(context *cli.Context) error {
-	if context.Args().Len() == 0 {
-		return errors.New("need key words")
-	}
-
-	key := strings.Join(context.Args().Slice(), " ")
-	sps, err := mgr.Search(key)
-	if err != nil {
-		return err
-	}
-
-	buf := &strings.Builder{}
-	buf.WriteString("| No. | Title | Difficulty | Locked |\n")
-	buf.WriteString("| --- | ----- | ---------- | ------ |\n")
-	rowTmp := "| %s  | %s    | %s         | %s     |\n"
-	lockCnt := 0
-	lastQuestion := ""
-	for _, sp := range sps {
-		locked := ""
-		if sp.PaidOnly {
-			locked = "🔒"
-			lockCnt++
-		}
-		row := fmt.Sprintf(rowTmp, sp.Stat.CalculatedID, sp.Stat.QuestionTitle, sp.Difficulty.String(), locked)
-		buf.WriteString(row)
-		lastQuestion = sp.Stat.CalculatedID
-	}
-	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(sps), lockCnt))
-	buf.WriteString(fmt.Sprintf("> pick one? type like: `leetgo pick %s`", lastQuestion))
-
-	md := buf.String()
-
-	fmt.Println(render.MarkDown(md))
-
-	return nil
 }
 
 var idFlag = &cli.StringFlag{
@@ -66,4 +28,14 @@ var keyFlag = &cli.StringFlag{
 	Name:    "key",
 	Aliases: []string{"k"},
 	Usage:   "key words",
+}
+
+func searchAction(context *cli.Context) error {
+	if context.Args().Len() == 0 {
+		return errors.New("need key words")
+	}
+
+	key := strings.Join(context.Args().Slice(), " ")
+	_, err := tea.NewProgram(comp.NewSearcher(key)).Run()
+	return err
 }

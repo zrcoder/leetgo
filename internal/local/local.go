@@ -21,13 +21,11 @@ func ReadList() (map[string]model.StatStatusPair, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	path, err := getListDir(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := DB(cfg)
+	db, err := getDB(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +41,7 @@ func ReadList() (map[string]model.StatStatusPair, error) {
 		return err
 	})
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		if err == badger.ErrKeyNotFound {
 			err = ErrNotCached
 		}
@@ -51,7 +49,7 @@ func ReadList() (map[string]model.StatStatusPair, error) {
 	}
 	res := map[string]model.StatStatusPair{}
 	err = json.Unmarshal(data, &res)
-	log.Dev(err)
+	log.Trace(err)
 	return res, err
 }
 
@@ -60,13 +58,11 @@ func WriteList(list *model.List) (map[string]model.StatStatusPair, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	path, err := getListDir(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := DB(cfg)
+	db, err := getDB(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -83,22 +79,21 @@ func WriteList(list *model.List) (map[string]model.StatStatusPair, error) {
 	err = db.Update(func(txn *badger.Txn) error {
 		return txn.Set(key, data)
 	})
-	log.Dev(err)
+	log.Trace(err)
 	return res, err
 }
 
 func Read(id string) (*model.Question, error) {
-	log.Dev("begin to search question in local files, id:", id)
+	log.Trace("begin to search question in local files, id:", id)
 	cfg, err := config.Get()
 	if err != nil {
 		return nil, err
 	}
-	dir, err := getCacheLangCodeDir(cfg)
+	dir, err := getCacheLangDir(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := DB(cfg)
+	db, err := getDB(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +110,7 @@ func Read(id string) (*model.Question, error) {
 		return err
 	})
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		if err == badger.ErrKeyNotFound {
 			err = ErrNotCached
 		}
@@ -132,13 +127,11 @@ func Write(id string, question *model.Question) error {
 	if err != nil {
 		return err
 	}
-
-	dir, err := parseCacheLangCodeDir(cfg)
+	dir, err := getCacheLangDir(cfg)
 	if err != nil {
 		return err
 	}
-
-	db, err := DB(cfg)
+	db, err := getDB(cfg)
 	if err != nil {
 		return err
 	}
@@ -158,33 +151,29 @@ func Write(id string, question *model.Question) error {
 
 func getCacheDir(cfg *config.Config) (string, error) {
 	dir, err := filepath.Abs(cfg.CacheDir)
-	log.Dev(err)
+	log.Trace(err)
 	return dir, err
 }
 
 func getListDir(cfg *config.Config) (string, error) {
 	dir, err := filepath.Abs(cfg.CacheDir)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return "", err
 	}
 	return filepath.Join(dir, cfg.Language, "list"), nil
 }
 
-func getCacheLangCodeDir(cfg *config.Config) (string, error) {
-	return parseCacheLangCodeDir(cfg)
-}
-
-func parseCacheLangCodeDir(cfg *config.Config) (string, error) {
+func getCacheLangDir(cfg *config.Config) (string, error) {
 	cacheDir, err := filepath.Abs(cfg.CacheDir)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return "", err
 	}
-	return filepath.Join(cacheDir, cfg.Language, cfg.CodeLang), err
+	return filepath.Join(cacheDir, cfg.Language), err
 }
 
-func DB(cfg *config.Config) (*badger.DB, error) {
+func getDB(cfg *config.Config) (*badger.DB, error) {
 	cacheDir, err := getCacheDir(cfg)
 	if err != nil {
 		return nil, err
@@ -192,6 +181,6 @@ func DB(cfg *config.Config) (*badger.DB, error) {
 	opts := badger.DefaultOptions(cacheDir)
 	opts.Logger = log.Logger
 	db, err := badger.Open(opts)
-	log.Dev(err)
+	log.Trace(err)
 	return db, err
 }

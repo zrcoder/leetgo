@@ -33,20 +33,20 @@ func GetList() (*model.List, error) {
 	uri := fmt.Sprintf("%s/api/problems/all", config.Domain())
 	resp, err := http.Get(uri)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	res := &model.List{}
 	err = json.Unmarshal(data, res)
-	log.Dev(err)
+	log.Trace(err)
 	return res, err
 }
 
@@ -63,27 +63,27 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	uri := fmt.Sprintf("%s/graphql", domain)
 	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewBuffer(reqBody))
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 	referer := fmt.Sprintf("%s/problems/%s", domain, sp.Stat.QuestionTitleSlug)
 	setCommonHeaders(req, referer)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("querey question failed, response status: %s", resp.Status)
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 
 	res := &model.GetQuestionResponse{}
 	err = json.NewDecoder(resp.Body).Decode(res)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 	question := res.Data.Question
@@ -91,7 +91,8 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	question.Title = sp.Stat.QuestionTitle
 	question.Referer = referer
 	question.Difficulty = sp.Difficulty.String()
-	return question, nil
+	err = question.TransformContent()
+	return question, err
 }
 
 func setCommonHeaders(req *http.Request, referer string) {

@@ -6,7 +6,7 @@ import (
 
 // release version do nothing
 
-var Dev = func(x ...any) {}
+var Trace = func(x ...any) {}
 
 var Logger badger.Logger = logger{}
 

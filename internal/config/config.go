@@ -63,7 +63,7 @@ var defaultCfg = &Config{
 func Write(cfg *Config) error {
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	err := os.WriteFile(configFile, data, 0640)
-	log.Dev(err)
+	log.Trace(err)
 	return err
 }
 
@@ -73,17 +73,17 @@ func Read() ([]byte, error) {
 		if os.IsNotExist(err) {
 			err = Write(defaultCfg)
 		} else {
-			log.Dev(err)
+			log.Trace(err)
 			return nil, err
 		}
 	}
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 
 	data, err := os.ReadFile(configFile)
-	log.Dev(err)
+	log.Trace(err)
 
 	return data, err
 }
@@ -95,7 +95,7 @@ func Get() (*Config, error) {
 	}
 	res := &Config{}
 	err = json.Unmarshal(data, &res)
-	log.Dev(err)
+	log.Trace(err)
 
 	return res, err
 }
@@ -119,7 +119,7 @@ var CodeLangExtensionDic = map[string]string{
 }
 
 func GetCredentials() (string, string, error) {
-	log.Dev("get credentials from config")
+	log.Trace("get credentials from config")
 	cfg, err := Get()
 	if err != nil {
 		return "", "", err
@@ -165,7 +165,7 @@ func UpdateCredentials() error {
 }
 
 func getCredentialsFromBrowser(domain string) (string, string, error) {
-	log.Dev("get credentials from browser")
+	log.Trace("get credentials from browser")
 	tokenCookies := kooky.ReadCookies(
 		kooky.Valid,
 		kooky.DomainContains(domain),
@@ -178,7 +178,7 @@ func getCredentialsFromBrowser(domain string) (string, string, error) {
 	)
 	if len(sessionCookies) == 0 || len(tokenCookies) == 0 {
 		err := errors.New("failed to get credentials")
-		log.Dev(err)
+		log.Trace(err)
 		return "", "", err
 	}
 	return tokenCookies[0].Value, sessionCookies[0].Value, nil

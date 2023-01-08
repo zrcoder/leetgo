@@ -14,7 +14,7 @@ import (
 func Query(id string) (*model.Question, error) {
 	question, err := local.Read(id)
 	if err == nil {
-		log.Dev("got markdown data from local")
+		log.Trace("got markdown data from local")
 		return question, nil
 	}
 
@@ -24,7 +24,7 @@ func Query(id string) (*model.Question, error) {
 
 	list, err := getList()
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 
@@ -35,12 +35,12 @@ func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) (*m
 	sp, ok := statStatusPairs[id]
 	if !ok {
 		err := fmt.Errorf("not found by id: %s", id)
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 	if sp.PaidOnly {
 		err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
-		log.Dev(err)
+		log.Trace(err)
 		return nil, err
 	}
 
@@ -49,14 +49,8 @@ func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) (*m
 		return nil, err
 	}
 
-	err = question.TransformContent()
-	if err != nil {
-		log.Dev(err)
-		return nil, err
-	}
-
 	err = local.Write(sp.Stat.CalculatedID, question)
-	log.Dev(err)
+	log.Trace(err)
 	return question, err
 }
 
@@ -76,6 +70,7 @@ func Search(keyWords string) ([]model.StatStatusPair, error) {
 		}
 	}
 	if len(res) == 0 {
+		log.Trace("no questions found")
 		return nil, fmt.Errorf("no questions found by keywords: %s", keyWords)
 	}
 

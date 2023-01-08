@@ -39,7 +39,7 @@ func (q *Question) TransformContent() error {
 	content = strings.ReplaceAll(content, "</sup>", "")
 	content, err = h2md.NewConverter("", true, nil).ConvertString(content)
 	if err != nil {
-		log.Dev(err)
+		log.Trace(err)
 		return err
 	}
 	content = strings.ReplaceAll(content, `\[`, `[`)

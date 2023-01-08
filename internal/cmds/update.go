@@ -1,15 +1,12 @@
 package cmds
 
 import (
-	"fmt"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
-	"github.com/zrcoder/leetgo/internal/local"
-	"github.com/zrcoder/leetgo/internal/mgr"
-	"github.com/zrcoder/leetgo/internal/remote"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/internal/comp"
 )
 
 var Update = &cli.Command{
@@ -20,40 +17,10 @@ var Update = &cli.Command{
 }
 
 func updateAction(context *cli.Context) error {
-	if context.Args().Len() == 0 {
-		return updateList()
+	id := ""
+	if context.Args().Len() > 0 {
+		id = strings.Join(context.Args().Slice(), " ")
 	}
-	id := strings.Join(context.Args().Slice(), " ")
-	return update(id)
-}
-
-func updateList() error {
-	list, err := remote.GetList()
-	if err != nil {
-		return err
-	}
-
-	sps, err := local.WriteList(list)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(render.Successf("question list updated, there are %d questions now", len(sps)))
-
-	return nil
-}
-
-func update(id string) error {
-	list, err := local.ReadList()
-	if err != nil {
-		return err
-	}
-
-	question, err := mgr.QueryRemote(list, id)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(render.MarkDown(question.MdContent))
-	return nil
+	_, err := tea.NewProgram(comp.NewUpdater(id)).Run()
+	return err
 }

@@ -10,12 +10,12 @@ import (
 )
 
 func init() {
-	Dev = func(x ...any) {
+	Trace = func(x ...any) {
 		if len(x) == 0 || x[0] == nil {
 			return
 		}
 		_, filename, line, _ := runtime.Caller(1)
-		fmt.Print(render.Debug(fmt.Sprintf("[Dev] %s:%d ", filename, line)))
+		fmt.Print(render.Debug(fmt.Sprintf("[Trace] %s:%d ", filename, line)))
 		fmt.Println(x...)
 	}
 	Logger = loggerDev{}

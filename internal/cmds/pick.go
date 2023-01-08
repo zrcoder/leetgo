@@ -2,13 +2,12 @@ package cmds
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
-	"github.com/zrcoder/leetgo/internal/mgr"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/internal/comp"
 )
 
 var ErrNeedQuestionId = errors.New("need question id")
@@ -17,19 +16,15 @@ var Pick = &cli.Command{
 	Name:      "pick",
 	Usage:     "pick a question by id",
 	UsageText: "leetgo pick 127",
-	Action: func(context *cli.Context) error {
-		if context.Args().Len() == 0 {
-			return ErrNeedQuestionId
-		}
+	Action:    pickAction,
+}
 
-		id := strings.Join(context.Args().Slice(), " ")
-		question, err := mgr.Query(id)
-		if err != nil {
-			return err
-		}
+func pickAction(context *cli.Context) error {
+	if context.Args().Len() == 0 {
+		return ErrNeedQuestionId
+	}
 
-		fmt.Println(render.MarkDown(question.MdContent))
-
-		return nil
-	},
+	id := strings.Join(context.Args().Slice(), " ")
+	_, err := tea.NewProgram(comp.NewPicker(id)).Run()
+	return err
 }
