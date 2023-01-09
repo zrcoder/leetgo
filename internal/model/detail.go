@@ -76,8 +76,9 @@ func (q *Question) TransformContent() error {
 
 func (q *Question) ParseCodes() ([]*Code, error) {
 	q.CodeDefinition = strings.ReplaceAll(q.CodeDefinition, `\\n`, `\n`)
-	res := []*Code{}
+	var res []*Code
 	err := json.Unmarshal([]byte(q.CodeDefinition), &res)
+	log.Trace(err)
 	return res, err
 }
 

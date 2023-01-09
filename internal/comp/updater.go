@@ -51,14 +51,14 @@ func (u *Updater) update() error {
 		u.spinner.Stop()
 		return err
 	}
-	question, err := mgr.QueryRemote(list, u.id)
+	path, _, err := mgr.Update(list, u.id)
 	if err != nil {
 		u.spinner.Stop()
 		return err
 	}
 
 	u.spinner.Stop()
-	fmt.Println(render.Success("Done!"))
-	fmt.Println(render.MarkDown(question.MdContent))
+	fmt.Println(render.Success(fmt.Sprintf("Done!, stored in %s\n", path)))
+
 	return nil
 }

@@ -11,47 +11,47 @@ import (
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func Query(id string) (*model.Question, error) {
-	question, err := local.Read(id)
+func Query(id string) (string, *model.Question, error) {
+	dir, question, err := local.Read(id)
 	if err == nil {
 		log.Trace("got markdown data from local")
-		return question, nil
+		return dir, question, nil
 	}
 
 	if err != local.ErrNotCached {
-		return nil, err
+		return "", nil, err
 	}
 
 	list, err := getList()
 	if err != nil {
 		log.Trace(err)
-		return nil, err
+		return "", nil, err
 	}
 
-	return QueryRemote(list, id)
+	return Update(list, id)
 }
 
-func QueryRemote(statStatusPairs map[string]model.StatStatusPair, id string) (*model.Question, error) {
+func Update(statStatusPairs map[string]model.StatStatusPair, id string) (string, *model.Question, error) {
 	sp, ok := statStatusPairs[id]
 	if !ok {
 		err := fmt.Errorf("not found by id: %s", id)
 		log.Trace(err)
-		return nil, err
+		return "", nil, err
 	}
 	if sp.PaidOnly {
 		err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
 		log.Trace(err)
-		return nil, err
+		return "", nil, err
 	}
 
 	question, err := remote.GetQuestion(&sp)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	err = local.Write(sp.Stat.CalculatedID, question)
+	path, err := local.Write(sp.Stat.CalculatedID, question)
 	log.Trace(err)
-	return question, err
+	return path, question, err
 }
 
 func Search(keyWords string) ([]model.StatStatusPair, error) {

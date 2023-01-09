@@ -21,7 +21,7 @@ type Picker struct {
 
 func (c *Picker) Run() error {
 	c.spinner.Start()
-	question, err := mgr.Query(c.id)
+	path, question, err := mgr.Query(c.id)
 	c.spinner.Stop()
 
 	if err != nil {
@@ -29,5 +29,6 @@ func (c *Picker) Run() error {
 	}
 
 	fmt.Println(render.MarkDown(question.MdContent))
+	fmt.Println(render.Success(fmt.Sprintf("stored in %s", path)))
 	return nil
 }
