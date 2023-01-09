@@ -3,8 +3,7 @@ package comp
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/spinner"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/briandowns/spinner"
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/mgr"
@@ -12,73 +11,54 @@ import (
 	"github.com/zrcoder/leetgo/internal/render"
 )
 
-func NewUpdater(id string) *Updater {
-	return &Updater{id: id, spinner: defaultSpinner}
+func NewUpdater(id string) Component {
+	return &Updater{id: id, spinner: newSpinner("Updating")}
 }
 
 type Updater struct {
 	id      string
-	success bool
-	err     error
-	spinner spinner.Model
+	spinner *spinner.Spinner
 }
 
-func (u *Updater) do() tea.Msg {
+func (u *Updater) Run() error {
 	if u.id == "" {
 		return u.updateList()
 	}
 	return u.update()
 }
 
-func (u *Updater) updateList() tea.Msg {
+func (u *Updater) updateList() error {
+	u.spinner.Start()
 	list, err := remote.GetList()
 	if err != nil {
+		u.spinner.Stop()
 		return err
 	}
 	sps, err := local.WriteList(list)
 	if err != nil {
+		u.spinner.Stop()
 		return err
 	}
-	return render.Successf("question list updated, there are %d questions now", len(sps))
+	u.spinner.Stop()
+	fmt.Println(render.Successf("question list updated, there are %d questions now", len(sps)))
+	return nil
 }
 
-func (u *Updater) update() tea.Msg {
+func (u *Updater) update() error {
+	u.spinner.Start()
 	list, err := local.ReadList()
 	if err != nil {
+		u.spinner.Stop()
 		return err
 	}
-	_, err = mgr.QueryRemote(list, u.id)
+	question, err := mgr.QueryRemote(list, u.id)
 	if err != nil {
+		u.spinner.Stop()
 		return err
 	}
-	return true
-}
 
-func (u *Updater) Init() tea.Cmd {
-	return tea.Batch(u.spinner.Tick, u.do)
-}
-
-func (u *Updater) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case error:
-		u.err = msg
-		return u, tea.Quit
-	case bool:
-		u.success = msg
-		return u, tea.Quit
-	default:
-		var cmd tea.Cmd
-		u.spinner, cmd = u.spinner.Update(msg)
-		return u, cmd
-	}
-}
-
-func (u *Updater) View() string {
-	if u.err != nil {
-		return render.Fail(fmt.Sprintf("%s\n", u.err))
-	}
-	if u.success {
-		return fmt.Sprintf("%s\n", render.Success("Updated!"))
-	}
-	return fmt.Sprintf("Updating %s", u.spinner.View())
+	u.spinner.Stop()
+	fmt.Println(render.Success("Done!"))
+	fmt.Println(render.MarkDown(question.MdContent))
+	return nil
 }

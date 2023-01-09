@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/comp"
@@ -25,6 +24,5 @@ func pickAction(context *cli.Context) error {
 	}
 
 	id := strings.Join(context.Args().Slice(), " ")
-	_, err := tea.NewProgram(comp.NewPicker(id)).Run()
-	return err
+	return comp.NewPicker(id).Run()
 }

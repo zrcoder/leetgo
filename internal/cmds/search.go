@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/comp"
@@ -36,6 +35,5 @@ func searchAction(context *cli.Context) error {
 	}
 
 	key := strings.Join(context.Args().Slice(), " ")
-	_, err := tea.NewProgram(comp.NewSearcher(key)).Run()
-	return err
+	return comp.NewSearcher(key).Run()
 }

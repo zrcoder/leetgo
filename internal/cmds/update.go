@@ -3,7 +3,6 @@ package cmds
 import (
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/comp"
@@ -21,6 +20,5 @@ func updateAction(context *cli.Context) error {
 	if context.Args().Len() > 0 {
 		id = strings.Join(context.Args().Slice(), " ")
 	}
-	_, err := tea.NewProgram(comp.NewUpdater(id)).Run()
-	return err
+	return comp.NewUpdater(id).Run()
 }
