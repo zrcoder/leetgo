@@ -58,7 +58,7 @@ func (u *Updater) update() error {
 	}
 
 	u.spinner.Stop()
-	fmt.Println(render.Success(fmt.Sprintf("Done!, stored in %s\n", path)))
+	fmt.Println(render.Successf("\n  Done!, stored in %s\n", path))
 
 	return nil
 }

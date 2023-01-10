@@ -18,6 +18,11 @@ func init() {
 		fmt.Print(render.Debug(fmt.Sprintf("[Trace] %s:%d ", filename, line)))
 		fmt.Println(x...)
 	}
+	Tracef = func(format string, x ...any) {
+		_, filename, line, _ := runtime.Caller(1)
+		fmt.Print(render.Debug(fmt.Sprintf("[Trace] %s:%d ", filename, line)))
+		fmt.Printf(format, x...)
+	}
 	Logger = loggerDev{}
 }
 

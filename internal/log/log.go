@@ -7,6 +7,7 @@ import (
 // release version do nothing
 
 var Trace = func(x ...any) {}
+var Tracef = func(format string, x ...any) {}
 
 var Logger badger.Logger = logger{}
 

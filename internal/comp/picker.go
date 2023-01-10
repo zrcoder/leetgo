@@ -29,6 +29,6 @@ func (c *Picker) Run() error {
 	}
 
 	fmt.Println(render.MarkDown(question.MdContent))
-	fmt.Println(render.Success(fmt.Sprintf("stored in %s", path)))
+	fmt.Println(render.Success(fmt.Sprintf("  Stored in: %s\n", path)))
 	return nil
 }
