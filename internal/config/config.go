@@ -96,7 +96,6 @@ func Get() (*Config, error) {
 	res := &Config{}
 	err = json.Unmarshal(data, &res)
 	log.Trace(err)
-
 	return res, err
 }
 

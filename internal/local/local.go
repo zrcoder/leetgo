@@ -179,7 +179,7 @@ func writeCodeFile(id string, question *model.Question, cfg *config.Config) (str
 	if err != nil {
 		return "", err
 	}
-	path := filepath.Join(dir, codeFileName+extesionDic[cfg.CodeLang])
+	path, _ := getCodeFilePath(cfg, id)
 	buf := bytes.NewBuffer(nil)
 	isGo := cfg.CodeLang == config.CodeLangGoShort || cfg.CodeLang == config.CodeLangGo
 	if isGo {
@@ -251,4 +251,13 @@ func getDB(cfg *config.Config) (*badger.DB, error) {
 	db, err := badger.Open(opts)
 	log.Trace(err)
 	return db, err
+}
+
+func getCodeFilePath(cfg *config.Config, id string) (string, error) {
+	path, err := filepath.Abs(filepath.Join(cfg.CacheDir, cfg.Language, cfg.CodeLang, id, codeFileName+extesionDic[cfg.CodeLang]))
+	if err != nil {
+		log.Trace(err)
+		return "", err
+	}
+	return path, nil
 }

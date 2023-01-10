@@ -22,6 +22,7 @@ func main() {
 			cmds.Search,
 			cmds.Pick,
 			cmds.Update,
+			cmds.Book,
 		},
 	}
 
