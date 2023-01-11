@@ -1,5 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak=
+github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/JohannesKaufmann/html-to-markdown v1.3.6 h1:i3Ma4RmIU97gqArbxZXbFqbWKm7XtImlMwVNUouQ7Is=
 github.com/JohannesKaufmann/html-to-markdown v1.3.6/go.mod h1:Ol3Jv/xw8jt8qsaLeSh/6DBBw4ZBJrTqrOu3wbbUUg8=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
@@ -13,6 +15,8 @@ github.com/Velocidex/ordereddict v0.0.0-20220411103415-79032cf99b1d h1:XnifmnLRj
 github.com/Velocidex/ordereddict v0.0.0-20220411103415-79032cf99b1d/go.mod h1:XJDUbaGh2U9e0z78L5O2OXf1hE1wSxnJ7nSlQmA+bIs=
 github.com/Velocidex/yaml/v2 v2.2.8 h1:GUrSy4SBJ6RjGt43k6MeBKtw2z/27gh4A3hfFmFY3No=
 github.com/Velocidex/yaml/v2 v2.2.8/go.mod h1:PlXIg/Pxmoja48C1vMHo7C5pauAZvLq/UEPOQ3DsjS4=
+github.com/adrg/frontmatter v0.2.0 h1:/DgnNe82o03riBd1S+ZDjd43wAmC6W35q67NHeLkPd4=
+github.com/adrg/frontmatter v0.2.0/go.mod h1:93rQCj3z3ZlwyxxpQioRKC1wDLto4aXHrbqIsnH9wmE=
 github.com/alecthomas/chroma v0.10.0 h1:7XDcGkCQopCNKjZHfYrNLraA+M7e0fMiJ/Mfikbfjek=
 github.com/alecthomas/chroma v0.10.0/go.mod h1:jtJATyUxlIORhUOFNA9NZDWGAQ8wpxQQqNSB4rjA/1s=
 github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1/go.mod h1:xTS7Pm1pD1mvyM075QCDSRqH6qRLXylzS24ZTpRiSzQ=
@@ -183,8 +187,8 @@ github.com/zalando/go-keyring v0.2.1 h1:MBRN/Z8H4U5wEKXiD67YbDAr5cj/DOStmSga70/2
 github.com/zalando/go-keyring v0.2.1/go.mod h1:g63M2PPn0w5vjmEbwAX3ib5I+41zdm4esSETOn9Y6Dw=
 github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db h1:GiYcv6tEo8yme647CfG3tUydWi7LQG55oNb5bZ2ZeUM=
 github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db/go.mod h1:6JjIozsIKDJ2H0S0ePLIoVbhhBvI15a/oFlMYsfIsSA=
-github.com/zrcoder/rdbook v0.0.0-20230110092732-38473502fe2f h1:3KhYff5e16Lr213qHQHyMBF11/zc5IUKxycCnNEXIpQ=
-github.com/zrcoder/rdbook v0.0.0-20230110092732-38473502fe2f/go.mod h1:nj/zmpdeBbe+mbm0epUQRDyZLZI4uXa0lHIo26W3bNQ=
+github.com/zrcoder/rdbook v0.0.0-20230111071328-9a038291bc6a h1:TC7/iX0fGzmSCPhUdgqhRcRHgGYMsujh6/6FgWEYcG4=
+github.com/zrcoder/rdbook v0.0.0-20230111071328-9a038291bc6a/go.mod h1:nj/zmpdeBbe+mbm0epUQRDyZLZI4uXa0lHIo26W3bNQ=
 go.opencensus.io v0.22.5 h1:dntmOdLpSpHlVqbW5Eay97DelsZHe+55D+xC6i0dDS0=
 go.opencensus.io v0.22.5/go.mod h1:5pWMHQbX5EPX2/62yrJeAkowc+lfs/XD7Uxpq3pI6kk=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
@@ -270,6 +274,7 @@ gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogR
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.3.0/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

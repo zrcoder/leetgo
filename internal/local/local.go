@@ -109,9 +109,13 @@ func Read(id string) (string, *model.Question, error) {
 	}
 	defer func() { _ = db.Close() }()
 
+	return read(cfg, id, db)
+}
+
+func read(cfg *config.Config, id string, db *badger.DB) (string, *model.Question, error) {
 	var data []byte
 	key := makeQuestionKey(cfg, id)
-	err = db.View(func(txn *badger.Txn) error {
+	err := db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
 		if err != nil {
 			return err
@@ -120,7 +124,7 @@ func Read(id string) (string, *model.Question, error) {
 		return err
 	})
 	if err != nil {
-		log.Trace(err)
+		log.Trace("id:", id, "\nerror:", err)
 		if err == badger.ErrKeyNotFound {
 			err = ErrNotCached
 		}
@@ -233,7 +237,7 @@ func makeCodeDir(cfg *config.Config, id string) (string, error) {
 }
 
 func makeListKey(cfg *config.Config) []byte {
-	return []byte(filepath.Join(cfg.Language, "list"))
+	return []byte(filepath.Join(cfg.Language, "_list"))
 }
 
 func makeQuestionKey(cfg *config.Config, id string) []byte {
@@ -241,7 +245,7 @@ func makeQuestionKey(cfg *config.Config, id string) []byte {
 }
 
 func getDB(cfg *config.Config) (*badger.DB, error) {
-	dir, err := filepath.Abs(filepath.Join(cfg.CacheDir, "db"))
+	dir, err := filepath.Abs(filepath.Join(cfg.CacheDir, "_db"))
 	if err != nil {
 		log.Trace(err)
 		return nil, err

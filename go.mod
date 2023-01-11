@@ -12,12 +12,15 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/urfave/cli/v2 v2.23.7
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
+	github.com/zrcoder/rdbook v0.0.0-20230111071328-9a038291bc6a
 )
 
 require (
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Velocidex/json v0.0.0-20220224052537-92f3c0326e5a // indirect
 	github.com/Velocidex/ordereddict v0.0.0-20220411103415-79032cf99b1d // indirect
 	github.com/Velocidex/yaml/v2 v2.2.8 // indirect
+	github.com/adrg/frontmatter v0.2.0 // indirect
 	github.com/alecthomas/chroma v0.10.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/aymanbagabas/go-osc52 v1.0.3 // indirect
@@ -59,7 +62,6 @@ require (
 	github.com/yuin/goldmark v1.5.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	github.com/zalando/go-keyring v0.2.1 // indirect
-	github.com/zrcoder/rdbook v0.0.0-20230110092732-38473502fe2f // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921 // indirect
 	golang.org/x/mod v0.3.0 // indirect
@@ -69,5 +71,6 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	www.velocidex.com/golang/go-ese v0.1.0 // indirect
 )

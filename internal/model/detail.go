@@ -13,7 +13,7 @@ import (
 
 type Question struct {
 	// redefined
-	Id         string `json:"id"`
+	ID         string `json:"id"`
 	Title      string `json:"title"`
 	Referer    string `json:"referer"`
 	Difficulty string `json:"difficulty"`
@@ -65,10 +65,11 @@ func (q *Question) TransformContent() error {
 		log.Trace(err)
 		return err
 	}
+	content = strings.TrimSpace(content)
 	replacer = strings.NewReplacer(`\-`, "-", `\[`, "[", `\]`, `]`)
 	content = replacer.Replace(content)
-	q.MdContent = fmt.Sprintf("## [%s. %s](%s) (%s)\n\n%s",
-		q.Id, q.Title, q.Referer, q.Difficulty, content)
+	q.MdContent = fmt.Sprintf("## [%s. %s](%s) (%s)\n\n%s\n\n",
+		q.ID, q.Title, q.Referer, q.Difficulty, content)
 	q.Content = ""
 	q.TranslatedContent = ""
 	return nil

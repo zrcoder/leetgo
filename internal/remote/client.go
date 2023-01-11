@@ -87,7 +87,7 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 		return nil, err
 	}
 	question := res.Data.Question
-	question.Id = sp.Stat.CalculatedID
+	question.ID = sp.Stat.CalculatedID
 	question.Title = sp.Stat.QuestionTitle
 	question.Referer = referer
 	question.Difficulty = sp.Difficulty.String()
