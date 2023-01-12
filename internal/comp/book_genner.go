@@ -29,9 +29,9 @@ func (b *Book) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(render.Successf("  Your book is generated in %s\n", sitePath))
+	fmt.Println(render.Infof("  Your book is generated in %s\n", sitePath))
 	if markDowPath != "" {
-		fmt.Println(render.Successf("  The markdown docs are in %s\n", markDowPath))
+		fmt.Println(render.Infof("  The markdown docs are in %s\n", markDowPath))
 	}
 	return nil
 }

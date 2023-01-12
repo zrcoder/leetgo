@@ -40,7 +40,7 @@ func (u *Updater) updateList() error {
 		return err
 	}
 	u.spinner.Stop()
-	fmt.Println(render.Successf("question list updated, there are %d questions now", len(sps)))
+	fmt.Println(render.Infof("question list updated, there are %d questions now", len(sps)))
 	return nil
 }
 
@@ -58,7 +58,7 @@ func (u *Updater) update() error {
 	}
 
 	u.spinner.Stop()
-	fmt.Println(render.Successf("\n  Done!, stored in %s\n", path))
+	fmt.Println(render.Infof("\n  Done!, stored in %s\n", path))
 
 	return nil
 }

@@ -65,11 +65,11 @@ func showConfig() error {
 	buf := &strings.Builder{}
 	buf.WriteString("|flag|current value|description|\n| --- | --- | --- |\n")
 	buf.WriteString(fmt.Sprintf("|-%s, --%s|%s|%v|\n",
-		langShortKey, config.LangKey, render.Success(cfg.Language), langUsage))
+		langShortKey, config.LangKey, render.Info(cfg.Language), langUsage))
 	buf.WriteString(fmt.Sprintf("|-%s, --%s|%s|%v|\n",
-		codeLangShortKey, config.CodeLangKey, render.Success(cfg.CodeLang), codeLangUsage))
+		codeLangShortKey, config.CodeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
 	buf.WriteString(fmt.Sprintf("|-%s, --%s|%s|%v|\n",
-		cacheDirShortKey, config.CacheDirKey, render.Success(cfg.CacheDir), cacheDirUsage))
+		cacheDirShortKey, config.CacheDirKey, render.Info(cfg.CacheDir), cacheDirUsage))
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil
 }

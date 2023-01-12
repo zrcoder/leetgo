@@ -18,6 +18,6 @@ type Server struct {
 }
 
 func (s Server) Run() error {
-	fmt.Println(render.Successf("  Serving on http://localhost:%s", s.port))
+	fmt.Println(render.Infof("  Serving on http://localhost:%s", s.port))
 	return rdbook.Serve(s.htmlSrc, "9999")
 }

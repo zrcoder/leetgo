@@ -29,6 +29,6 @@ func (c *Picker) Run() error {
 	}
 
 	fmt.Print(render.MarkDown(question.MdContent)) // question.MdContent has "\n\n" suffix
-	fmt.Println(render.Success(fmt.Sprintf("  Stored in: %s\n", path)))
+	fmt.Println(render.Info(fmt.Sprintf("  Stored in: %s\n", path)))
 	return nil
 }

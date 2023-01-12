@@ -27,7 +27,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(render.Fail(err.Error()))
+		fmt.Println(render.Error(err.Error()))
 	}
 }
 
