@@ -1,8 +1,17 @@
 package model
 
-type BookMeta struct {
-	SortBy       string
-	Repo         string
-	GenMarkdowns bool
-	DestPath     string
+import (
+	"time"
+)
+
+const (
+	SortByTime  = "time"
+	SortByTitle = "Title"
+)
+
+// Doc is a chapter/directory or an article/file
+type Doc struct {
+	Title           string
+	Time            time.Time
+	MarkdownContent []byte
 }

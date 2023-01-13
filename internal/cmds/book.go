@@ -1,6 +1,8 @@
 package cmds
 
 import (
+	"fmt"
+
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/comp"
@@ -23,48 +25,22 @@ const (
 var Book = &cli.Command{
 	Name:        "book",
 	Usage:       "generate or serve a book for the picked questions",
-	Subcommands: []*cli.Command{bookGen, bookServe},
-}
-
-var bookGen = &cli.Command{
-	Name:   "gen",
-	Usage:  "generate a book for the picked questions",
-	Flags:  []cli.Flag{sortFlag, genMarkdownFlag, genRepoFlag},
-	Action: bookGenAction,
+	Subcommands: []*cli.Command{bookServe},
 }
 
 var bookServe = &cli.Command{
 	Name:    "serve",
 	Aliases: []string{"server"},
-	Usage:   "serve the generated book html resources on localhost",
-	Flags:   []cli.Flag{serveSourceFlag, servePortFlag},
+	Usage:   "generate a book for the picked questions/solutions, and serve it on localhost",
+	Flags:   []cli.Flag{sortFlag, servePortFlag},
 	Action:  bookServeAction,
-}
-
-var genMarkdownFlag = &cli.BoolFlag{
-	Name:    genMarkdownFlagName,
-	Aliases: []string{genMarkDownFlagShortName},
-	Usage:   "generate markdowns or not when generate or serve the book",
 }
 
 var sortFlag = &cli.StringFlag{
 	Name:    sortDocFlagName,
 	Aliases: []string{sortDocFlagShortName},
-	Value:   "time",
+	Value:   model.SortByTime,
 	Usage:   "sort by time or title when generate or serve the book",
-}
-
-var genRepoFlag = &cli.StringFlag{
-	Name:    genRepoFlagName,
-	Aliases: []string{genRepoFlagShortName},
-	Usage:   "if you want to publish your book as github/gitee pages, you should pass the repo",
-}
-
-var serveSourceFlag = &cli.StringFlag{
-	Name:     serveSourceFlagName,
-	Aliases:  []string{serveSourceFlagShortName},
-	Usage:    "the source html resources' directory",
-	Required: true,
 }
 
 var servePortFlag = &cli.StringFlag{
@@ -73,20 +49,11 @@ var servePortFlag = &cli.StringFlag{
 	Required: true,
 }
 
-func bookGenAction(context *cli.Context) error {
-	sortBy := context.String(sortDocFlagName)
-	repo := context.String(genRepoFlagName)
-	genMarkdown := context.Bool(genMarkdownFlagName)
-	meta := &model.BookMeta{
-		SortBy:       sortBy,
-		Repo:         repo,
-		GenMarkdowns: genMarkdown,
-	}
-	return comp.NewBookGenerator(meta).Run()
-}
-
 func bookServeAction(context *cli.Context) error {
-	htmlSrc := context.String(serveSourceFlagName)
+	sortBy := context.String(sortDocFlagName)
+	if sortBy != model.SortByTime && sortBy != model.SortByTitle {
+		return fmt.Errorf("we only suport sort the questions by %s/%s", model.SortByTime, model.SortByTime)
+	}
 	port := context.String(servePortFlagName)
-	return comp.NewServer(htmlSrc, port).Run()
+	return comp.NewBook(sortBy, port).Run()
 }

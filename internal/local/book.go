@@ -8,10 +8,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
-
-	"github.com/zrcoder/rdbook"
 
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
@@ -22,30 +21,23 @@ const (
 	bookMarkdownName = "_markdown"
 )
 
-func Generate(info *model.BookMeta) (string, string, error) {
+func Generate(sortBy string) (string, error) {
 	docs, err := getDocs()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	markDownPath := ""
-	if info.GenMarkdowns {
-		markDownPath, err = writeBookMds(docs)
-		if err != nil {
-			return "", "", err
+	sort.Slice(docs, func(i, j int) bool {
+		if sortBy == model.SortByTime {
+			return docs[i].Time.Before(docs[j].Time)
 		}
-	}
+		return docs[i].Title < docs[j].Title
+	})
 
-	sitePath, err := rdbook.GenerateWithDocs(docs, info.DestPath, rdbook.WithSortRule(rdbook.SortByTime))
-	if err != nil {
-		log.Trace(err)
-		return "", "", err
-	}
-
-	return sitePath, markDownPath, nil
+	return writeBookMds(docs)
 }
 
-func getDocs() ([]*rdbook.Doc, error) {
+func getDocs() ([]*model.Doc, error) {
 	cfg, err := config.Get()
 	if err != nil {
 		return nil, err
@@ -62,12 +54,12 @@ func getDocs() ([]*rdbook.Doc, error) {
 		return nil, err
 	}
 	if len(ids) == 0 {
-		return nil, errors.New("you didn't pick any question yet")
+		return nil, errors.New("you haven't pick any question yet")
 	}
 
-	docs := make([]*rdbook.Doc, len(ids))
+	docs := make([]*model.Doc, len(ids))
 	for i, id := range ids {
-		doc := &rdbook.Doc{}
+		doc := &model.Doc{}
 
 		_, question, err := read(cfg, id, db)
 		if err != nil {
@@ -117,7 +109,7 @@ func getPickedQuestionIds(cfg *config.Config) ([]string, error) {
 	return ids, err
 }
 
-func writeBookMds(docs []*rdbook.Doc) (string, error) {
+func writeBookMds(docs []*model.Doc) (string, error) {
 	cfg, err := config.Get()
 	if err != nil {
 		return "", err
@@ -125,6 +117,7 @@ func writeBookMds(docs []*rdbook.Doc) (string, error) {
 
 	dir, err := getBookMarkdownDir(cfg)
 	if err != nil {
+		log.Trace(err)
 		return "", err
 	}
 
