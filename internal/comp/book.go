@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/briandowns/spinner"
+	"github.com/zrcoder/mdoc"
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/render"
-	"github.com/zrcoder/mdoc"
 )
 
 func NewBook(sortBy, port string) Component {
@@ -32,12 +32,12 @@ func (b *Book) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(render.Infof("  Your book is generated in %s\n", docPath))
+	fmt.Println(render.Infof("Your book is generated in %s\n", docPath))
 
-	cfg := mdoc.DefaultConfig
+	cfg := mdoc.GetConfig()
 	cfg.HttpPort = b.port
-	cfg.Page.HasLandingPage = false
-	cfg.Page.DocsBasePath = docPath
+	cfg.DocsDirectory = docPath
 
+	fmt.Printf("Serving on http://localhost:%s\n", b.port)
 	return mdoc.Serve(cfg)
 }

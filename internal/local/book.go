@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	bookMarkdownName = "_markdown"
+	docsName = "_docs"
 )
 
 func Generate(sortBy string) (string, error) {
@@ -34,7 +34,7 @@ func Generate(sortBy string) (string, error) {
 		return docs[i].Title < docs[j].Title
 	})
 
-	return writeBookMds(docs)
+	return writeMds(docs)
 }
 
 func getDocs() ([]*model.Doc, error) {
@@ -97,7 +97,7 @@ func getPickedQuestionIds(cfg *config.Config) ([]string, error) {
 	}
 	var ids []string
 	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if path == dir || d.Name() == bookMarkdownName {
+		if path == dir || d.Name() == docsName {
 			return nil
 		}
 		if d.IsDir() {
@@ -107,36 +107,6 @@ func getPickedQuestionIds(cfg *config.Config) ([]string, error) {
 		return nil
 	})
 	return ids, err
-}
-
-func writeBookMds(docs []*model.Doc) (string, error) {
-	cfg, err := config.Get()
-	if err != nil {
-		return "", err
-	}
-
-	dir, err := getBookMarkdownDir(cfg)
-	if err != nil {
-		log.Trace(err)
-		return "", err
-	}
-
-	err = os.MkdirAll(dir, 0777)
-	if err != nil {
-		log.Trace(err)
-		return "", err
-	}
-
-	for _, doc := range docs {
-		name := filepath.Join(dir, doc.Title+".md")
-		err = os.WriteFile(name, doc.MarkdownContent, 0640)
-		if err != nil {
-			log.Trace(err)
-			return "", err
-		}
-	}
-
-	return dir, nil
 }
 
 func readAnswerCode(cfg *config.Config, id string) ([]byte, *time.Time, error) {
@@ -177,10 +147,41 @@ func readAnswerCode(cfg *config.Config, id string) ([]byte, *time.Time, error) {
 	return bytes.TrimSpace(data[:index]), &modTime, nil
 }
 
-func getBookMarkdownDir(cfg *config.Config) (string, error) {
-	return filepath.Abs(filepath.Join(cfg.CacheDir, cfg.Language, cfg.CodeLang, bookMarkdownName))
-}
-
 func newHintError(info, path string) error {
 	return fmt.Errorf("%s, pleanse check %s", info, path)
+}
+
+func writeMds(docs []*model.Doc) (string, error) {
+	cfg, err := config.Get()
+	if err != nil {
+		return "", err
+	}
+
+	dir, err := getDocsDir(cfg)
+	if err != nil {
+		log.Trace(err)
+		return "", err
+	}
+
+	err = os.MkdirAll(dir, 0777)
+	if err != nil {
+		log.Trace(err)
+		return "", err
+	}
+
+	for i, doc := range docs {
+		name := filepath.Join(dir, doc.Title+".md")
+		content := fmt.Sprintf("---\nweight: %d\n---\n%s", i, doc.MarkdownContent)
+		err = os.WriteFile(name, []byte(content), 0640)
+		if err != nil {
+			log.Trace(err)
+			return "", err
+		}
+	}
+
+	return dir, nil
+}
+
+func getDocsDir(cfg *config.Config) (string, error) {
+	return filepath.Abs(filepath.Join(cfg.CacheDir, cfg.Language, cfg.CodeLang, docsName))
 }

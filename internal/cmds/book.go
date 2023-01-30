@@ -10,49 +10,37 @@ import (
 )
 
 const (
-	genMarkdownFlagName      = "markdown"
-	genMarkDownFlagShortName = "m"
-	sortDocFlagName          = "sortBy"
-	sortDocFlagShortName     = "s"
-	genRepoFlagName          = "repo"
-	genRepoFlagShortName     = "r"
-	servePortFlagName        = "port"
-	servePortShortFlagName   = "p"
-	serveSourceFlagName      = "src"
-	serveSourceFlagShortName = "s"
+	sortDocFlagName        = "sort"
+	sortDocFlagShortName   = "s"
+	servePortFlagName      = "port"
+	servePortShortFlagName = "p"
 )
 
 var Book = &cli.Command{
-	Name:        "book",
-	Usage:       "generate or serve a book for the picked questions",
-	Subcommands: []*cli.Command{bookServe},
-}
-
-var bookServe = &cli.Command{
-	Name:    "serve",
-	Aliases: []string{"server"},
-	Usage:   "generate a book for the picked questions/solutions, and serve it on localhost",
-	Flags:   []cli.Flag{sortFlag, servePortFlag},
-	Action:  bookServeAction,
+	Name:   "book",
+	Usage:  "generate and serve a web book for the picked questions",
+	Flags:  []cli.Flag{sortFlag, servePortFlag},
+	Action: bookAction,
 }
 
 var sortFlag = &cli.StringFlag{
 	Name:    sortDocFlagName,
 	Aliases: []string{sortDocFlagShortName},
 	Value:   model.SortByTime,
-	Usage:   "sort by time or title when generate or serve the book",
+	Usage:   "sort the docs by time or title",
 }
 
 var servePortFlag = &cli.StringFlag{
-	Name:     servePortFlagName,
-	Aliases:  []string{servePortShortFlagName},
-	Required: true,
+	Name:    servePortFlagName,
+	Aliases: []string{servePortShortFlagName},
+	Value:   "9999",
+	Usage:   "the local port for serving",
 }
 
-func bookServeAction(context *cli.Context) error {
+func bookAction(context *cli.Context) error {
 	sortBy := context.String(sortDocFlagName)
 	if sortBy != model.SortByTime && sortBy != model.SortByTitle {
-		return fmt.Errorf("we only suport sort the questions by %s/%s", model.SortByTime, model.SortByTime)
+		return fmt.Errorf("we only suport sort the questions by %s/%s", model.SortByTime, model.SortByTitle)
 	}
 	port := context.String(servePortFlagName)
 	return comp.NewBook(sortBy, port).Run()

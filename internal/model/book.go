@@ -6,7 +6,7 @@ import (
 
 const (
 	SortByTime  = "time"
-	SortByTitle = "Title"
+	SortByTitle = "title"
 )
 
 // Doc is a chapter/directory or an article/file
