@@ -12,7 +12,7 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/urfave/cli/v2 v2.23.7
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
-	github.com/zrcoder/mdoc v0.0.0-20230130101341-6da05286c3a2
+	github.com/zrcoder/mdoc v0.0.0-20230203085841-b18e3b4347fc
 )
 
 require (

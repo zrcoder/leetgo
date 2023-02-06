@@ -210,8 +210,8 @@ github.com/zalando/go-keyring v0.2.1 h1:MBRN/Z8H4U5wEKXiD67YbDAr5cj/DOStmSga70/2
 github.com/zalando/go-keyring v0.2.1/go.mod h1:g63M2PPn0w5vjmEbwAX3ib5I+41zdm4esSETOn9Y6Dw=
 github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db h1:GiYcv6tEo8yme647CfG3tUydWi7LQG55oNb5bZ2ZeUM=
 github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db/go.mod h1:6JjIozsIKDJ2H0S0ePLIoVbhhBvI15a/oFlMYsfIsSA=
-github.com/zrcoder/mdoc v0.0.0-20230130101341-6da05286c3a2 h1:WG73+2Cp9r560Pnp+uaAfhA4Pj3uQBb4w7j58Fxx8z4=
-github.com/zrcoder/mdoc v0.0.0-20230130101341-6da05286c3a2/go.mod h1:w7lpNlLYlzOL7vkR0YKlK9FwgGrdQPhP3EUnvx4wfJI=
+github.com/zrcoder/mdoc v0.0.0-20230203085841-b18e3b4347fc h1:Vvvr5PmHJApmUh27PjhkBvYbozb9cctEFHR0gAvtfBU=
+github.com/zrcoder/mdoc v0.0.0-20230203085841-b18e3b4347fc/go.mod h1:1vjwiE6wCCf5D/d7V3Y3Wt5SsjVQiULtbp9xhFbwmes=
 go.opencensus.io v0.22.5 h1:dntmOdLpSpHlVqbW5Eay97DelsZHe+55D+xC6i0dDS0=
 go.opencensus.io v0.22.5/go.mod h1:5pWMHQbX5EPX2/62yrJeAkowc+lfs/XD7Uxpq3pI6kk=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
