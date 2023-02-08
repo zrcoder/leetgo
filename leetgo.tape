@@ -1,6 +1,6 @@
 Output example.gif
 
-Set TypingSpeed 500ms 
+Set TypingSpeed 300ms 
 
 Type "leetgo config" Sleep 500ms Enter
 Sleep 3s
