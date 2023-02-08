@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 
@@ -21,19 +20,11 @@ const (
 	docsName = "_docs"
 )
 
-func Generate(sortBy string) (string, error) {
+func Generate() (string, error) {
 	docs, err := getDocs()
 	if err != nil {
 		return "", err
 	}
-
-	sort.Slice(docs, func(i, j int) bool {
-		if sortBy == model.SortByTime {
-			return docs[i].Time.Before(docs[j].Time)
-		}
-		return docs[i].Title < docs[j].Title
-	})
-
 	return writeMds(docs)
 }
 
@@ -169,9 +160,9 @@ func writeMds(docs []*model.Doc) (string, error) {
 		return "", err
 	}
 
-	for i, doc := range docs {
+	for _, doc := range docs {
 		name := filepath.Join(dir, doc.Title+".md")
-		content := fmt.Sprintf("---\nweight: %d\n---\n%s", i, doc.MarkdownContent)
+		content := string(doc.MarkdownContent)
 		err = os.WriteFile(name, []byte(content), 0640)
 		if err != nil {
 			log.Trace(err)
