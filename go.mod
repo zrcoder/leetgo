@@ -10,9 +10,9 @@ require (
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/cweill/gotests v1.6.0
 	github.com/dgraph-io/badger/v3 v3.2103.5
-	github.com/urfave/cli/v2 v2.24.3
+	github.com/urfave/cli/v2 v2.24.4
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
-	github.com/zrcoder/tdoc v0.0.0-20230208073251-cfeba190742a
+	github.com/zrcoder/tdoc v0.0.0-20230217104111-577fac39fa36
 )
 
 require (
@@ -27,7 +27,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.15.0 // indirect
-	github.com/charmbracelet/bubbletea v0.23.1 // indirect
+	github.com/charmbracelet/bubbletea v0.23.2 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -67,13 +67,14 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	github.com/zalando/go-keyring v0.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
-	golang.org/x/tools v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	www.velocidex.com/golang/go-ese v0.1.0 // indirect
 )
