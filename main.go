@@ -10,29 +10,26 @@ import (
 	"github.com/zrcoder/leetgo/internal/render"
 )
 
-var app *cli.App
-
 func main() {
-	app = &cli.App{
-		Name:   "leetgo",
-		Usage:  "my app for Leetcode",
-		Action: action,
+	app := &cli.App{
+		Name:  "leetgo",
+		Usage: "my app for Leetcode",
 		Commands: []*cli.Command{
+			cmds.Init,
 			cmds.Config,
 			cmds.Search,
-			cmds.Pick,
-			cmds.Update,
+			cmds.View,
+			cmds.Edit,
 			cmds.Book,
 		},
+	}
+	app.Action = func(ctx *cli.Context) error {
+		md, _ := app.ToMarkdown()
+		fmt.Println(render.MarkDown(md))
+		return nil
 	}
 
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(render.Error(err.Error()))
 	}
-}
-
-func action(context *cli.Context) error {
-	md, _ := app.ToMarkdown()
-	fmt.Println(render.MarkDown(md))
-	return nil
 }

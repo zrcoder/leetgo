@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zellyn/kooky"
@@ -32,53 +31,75 @@ const (
 
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
+
+	configFile = "leetgo.yaml"
 )
 
 var (
-	configFile = ".leetgo"
+	errConfigNotExist = errors.New("no config found, you should init your project firstly, try `leetgo init`")
+	ErrInvalidLan     = errors.New("only cn or en language supported")
+	ErrInvalidCodeLan = errors.New("not supported code language")
+	AllowedLang       = map[string]bool{"cn": true, "en": true}
+	AllowedCodeLang   = map[string]bool{
+		"go":     true,
+		"golang": true,
+		"java":   true,
+		"python": true,
+		"cpp":    true,
+		"c++":    true,
+		"c":      true,
+	}
 )
 
-func init() {
-	configDir, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-	configFile = filepath.Join(configDir, configFile)
-}
-
 type Config struct {
-	Language string `json:"language"`
-	CacheDir string `json:"cacheDir"`
-	CodeLang string `json:"codeLang"`
+	Language string `json:"language,omitempty"`
+	CodeLang string `json:"codeLang,omitempty"`
 	Token    string `json:"token"`
 	Session  string `json:"session"`
 }
 
 var defaultCfg = &Config{
 	Language: DefaultLanguage,
-	CacheDir: DefaultCacheDir,
 	CodeLang: DefaultCodeLang,
 }
 
 func Write(cfg *Config) error {
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	err := os.WriteFile(configFile, data, 0640)
+	preCfg, err := Get()
+	if err != nil {
+		if err == errConfigNotExist {
+			preCfg = defaultCfg
+		} else {
+			return err
+		}
+	}
+	data, _ := json.MarshalIndent(adapt(preCfg, cfg), "", "  ")
+	err = os.WriteFile(configFile, data, 0640)
 	log.Trace(err)
 	return err
+}
+
+func adapt(pre, cur *Config) *Config {
+	// struct Config is very simple now, if it becomes complex, use json marshal unmarshal instead
+	if cur.CodeLang != "" {
+		pre.CodeLang = cur.CodeLang
+	}
+	if cur.Language != "" {
+		pre.Language = cur.Language
+	}
+	// go -> golang
+	if pre.CodeLang == CodeLangGoShort {
+		pre.CodeLang = CodeLangGo
+	}
+	return pre
 }
 
 func Read() ([]byte, error) {
 	_, err := os.Stat(configFile)
 	if err != nil {
-		if os.IsNotExist(err) {
-			err = Write(defaultCfg)
-		} else {
-			log.Trace(err)
-			return nil, err
-		}
-	}
-	if err != nil {
 		log.Trace(err)
+		if os.IsNotExist(err) {
+			err = errConfigNotExist
+		}
 		return nil, err
 	}
 

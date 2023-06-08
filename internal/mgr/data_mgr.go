@@ -1,99 +1,63 @@
 package mgr
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func Query(id string) (string, *model.Question, error) {
-	dir, question, err := local.Read(id)
-	if err == nil {
-		log.Trace("got markdown data from local")
-		return dir, question, nil
-	}
-
-	if err != local.ErrNotCached {
-		return "", nil, err
-	}
-
-	list, err := getList()
+func Query(id string) (*model.Question, error) {
+	list, err := remote.GetList()
 	if err != nil {
 		log.Trace(err)
-		return "", nil, err
+		return nil, err
 	}
-
-	return Update(list, id)
-}
-
-func Update(statStatusPairs map[string]model.StatStatusPair, id string) (string, *model.Question, error) {
-	sp, ok := statStatusPairs[id]
-	if !ok {
-		err := fmt.Errorf("not found by id: %s", id)
-		log.Trace(err)
-		return "", nil, err
+	for _, sp := range list.StatStatusPairs {
+		sp.Stat.CalculatedID = sp.Stat.GetFrontendQuestionID()
+		if sp.Stat.CalculatedID != id {
+			continue
+		}
+		if sp.PaidOnly {
+			err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
+			log.Trace(err)
+			return nil, err
+		}
+		return remote.GetQuestion(&sp)
 	}
-	if sp.PaidOnly {
-		err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
-		log.Trace(err)
-		return "", nil, err
-	}
-
-	question, err := remote.GetQuestion(&sp)
-	if err != nil {
-		return "", nil, err
-	}
-
-	path, err := local.Write(sp.Stat.CalculatedID, question)
-	log.Trace(err)
-	return path, question, err
+	return nil, errors.New("question not found")
 }
 
 func Search(keyWords string) ([]model.StatStatusPair, error) {
-	list, err := getList()
+	list, err := remote.GetList()
 	if err != nil {
 		return nil, err
 	}
 
 	lower := strings.ToLower(keyWords)
 	var res []model.StatStatusPair
-	for _, sp := range list {
-		title1 := sp.Stat.CalculatedID + " " + strings.ToLower(sp.Stat.QuestionTitle)
-		title2 := sp.Stat.CalculatedID + ". " + strings.ToLower(sp.Stat.QuestionTitle)
-		if strings.Contains(title1, lower) || strings.Contains(title2, lower) {
-			res = append(res, sp)
+	for _, sp := range list.StatStatusPairs {
+		sp.Stat.CalculatedID = sp.Stat.GetFrontendQuestionID()
+		oriLower := strings.ToLower(sp.Stat.QuestionTitle)
+		for _, sep := range []string{" ", ". ", "."} {
+			title := sp.Stat.CalculatedID + sep + oriLower
+			if strings.Contains(title, lower) {
+				res = append(res, sp)
+				break
+			}
 		}
 	}
 	if len(res) == 0 {
 		log.Trace("no questions found")
-		return nil, fmt.Errorf("no questions found by keywords: %s", keyWords)
+		return nil, fmt.Errorf("no questions found for `%s`", keyWords)
 	}
 
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Stat.CalculatedID < res[j].Stat.CalculatedID
 	})
 	return res, nil
-}
-
-func getList() (map[string]model.StatStatusPair, error) {
-	res, err := local.ReadList()
-	if err == nil {
-		return res, nil
-	}
-	if err != local.ErrNotCached {
-		return nil, err
-	}
-
-	var list *model.List
-	list, err = remote.GetList()
-	if err != nil {
-		return nil, err
-	}
-
-	return local.WriteList(list)
 }

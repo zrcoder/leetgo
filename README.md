@@ -6,5 +6,4 @@ Cli APP for Leetcode.
 
 ## TODO
 
-- add sub commands: `test`, `submit`
-- improve command: `pick`
+- add sub commands: `solve`, `test`, `submit`

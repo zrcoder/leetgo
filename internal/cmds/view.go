@@ -11,18 +11,18 @@ import (
 
 var ErrNeedQuestionId = errors.New("need question id")
 
-var Pick = &cli.Command{
-	Name:      "pick",
-	Usage:     "pick a question by id",
-	UsageText: "leetgo pick 127",
-	Action:    pickAction,
+var View = &cli.Command{
+	Name:      "view",
+	Usage:     "view a question by id",
+	UsageText: "leetgo view 127",
+	Action:    viewAction,
 }
 
-func pickAction(context *cli.Context) error {
+func viewAction(context *cli.Context) error {
 	if context.Args().Len() == 0 {
 		return ErrNeedQuestionId
 	}
 
 	id := strings.Join(context.Args().Slice(), " ")
-	return comp.NewPicker(id).Run()
+	return comp.NewViewer(id).Run()
 }

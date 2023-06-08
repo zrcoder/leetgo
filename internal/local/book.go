@@ -34,12 +34,6 @@ func getDocs() ([]*model.Doc, error) {
 		return nil, err
 	}
 
-	db, err := getDB(cfg)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = db.Close() }()
-
 	ids, err := getPickedQuestionIds(cfg)
 	if err != nil {
 		return nil, err
@@ -52,7 +46,7 @@ func getDocs() ([]*model.Doc, error) {
 	for i, id := range ids {
 		doc := &model.Doc{}
 
-		_, question, err := read(cfg, id, db)
+		question, err := Read(id)
 		if err != nil {
 			return nil, err
 		}
@@ -82,12 +76,9 @@ func getDocs() ([]*model.Doc, error) {
 }
 
 func getPickedQuestionIds(cfg *config.Config) ([]string, error) {
-	dir, err := filepath.Abs(filepath.Join(cfg.CacheDir, cfg.Language, cfg.CodeLang))
-	if err != nil {
-		return nil, err
-	}
+	dir := filepath.Join(cfg.Language, cfg.CodeLang)
 	var ids []string
-	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if path == dir || d.Name() == docsName {
 			return nil
 		}
@@ -101,11 +92,7 @@ func getPickedQuestionIds(cfg *config.Config) ([]string, error) {
 }
 
 func readAnswerCode(cfg *config.Config, id string) ([]byte, *time.Time, error) {
-	path, err := getCodeFilePath(cfg, id)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	path := GetCodeFile(cfg, id)
 	f, err := os.Open(path)
 	if err != nil {
 		log.Trace(err)
@@ -148,11 +135,7 @@ func writeMds(docs []*model.Doc) (string, error) {
 		return "", err
 	}
 
-	dir, err := getDocsDir(cfg)
-	if err != nil {
-		log.Trace(err)
-		return "", err
-	}
+	dir := getDocsDir(cfg)
 
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
@@ -173,6 +156,6 @@ func writeMds(docs []*model.Doc) (string, error) {
 	return dir, nil
 }
 
-func getDocsDir(cfg *config.Config) (string, error) {
-	return filepath.Abs(filepath.Join(cfg.CacheDir, cfg.Language, cfg.CodeLang, docsName))
+func getDocsDir(cfg *config.Config) string {
+	return filepath.Join(cfg.Language, cfg.CodeLang, docsName)
 }

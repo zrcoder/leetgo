@@ -46,7 +46,7 @@ func (s *Searcher) Run() error {
 		lastQuestionID = sp.Stat.CalculatedID
 	}
 	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(sps), lockCnt))
-	buf.WriteString(fmt.Sprintf("> pick one? type like: `leetgo pick %s`\n", lastQuestionID))
+	buf.WriteString(fmt.Sprintf("> view detail? type like: `leetgo view %s`\n", lastQuestionID))
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil
 }

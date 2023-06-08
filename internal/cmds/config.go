@@ -13,17 +13,15 @@ import (
 const (
 	langShortKey     = "l"
 	codeLangShortKey = "c"
-	cacheDirShortKey = "d"
 
 	langUsage     = "language for the app"
 	codeLangUsage = "programing language to resolve the problems"
-	cacheDirUsage = "cache directory"
 )
 
 var Config = &cli.Command{
 	Name:      "config",
 	UsageText: "show current config if no flags, use flags to set",
-	Flags:     []cli.Flag{langFlag, codeLangFlag, cacheDirFlag},
+	Flags:     []cli.Flag{langFlag, codeLangFlag},
 	Action:    configAction,
 }
 
@@ -32,6 +30,12 @@ var langFlag = &cli.StringFlag{
 	Aliases: []string{langShortKey},
 	Value:   config.DefaultLanguage,
 	Usage:   langUsage,
+	Action: func(ctx *cli.Context, s string) error {
+		if !config.AllowedLang[s] {
+			return config.ErrInvalidLan
+		}
+		return nil
+	},
 }
 
 var codeLangFlag = &cli.StringFlag{
@@ -39,13 +43,12 @@ var codeLangFlag = &cli.StringFlag{
 	Aliases: []string{codeLangShortKey},
 	Value:   config.DefaultCodeLang,
 	Usage:   codeLangUsage,
-}
-
-var cacheDirFlag = &cli.StringFlag{
-	Name:    config.CacheDirKey,
-	Aliases: []string{cacheDirShortKey},
-	Value:   config.DefaultCacheDir,
-	Usage:   cacheDirUsage,
+	Action: func(ctx *cli.Context, s string) error {
+		if !config.AllowedCodeLang[s] {
+			return config.ErrInvalidCodeLan
+		}
+		return nil
+	},
 }
 
 func configAction(context *cli.Context) error {
@@ -53,7 +56,12 @@ func configAction(context *cli.Context) error {
 	if len(localFlags) == 0 {
 		return showConfig()
 	}
-	return setConfig(context, localFlags)
+	err := setConfig(context, localFlags)
+	if err != nil {
+		return err
+	}
+	fmt.Println(render.Info("Success"))
+	return nil
 }
 
 func showConfig() error {
@@ -68,8 +76,6 @@ func showConfig() error {
 		langShortKey, config.LangKey, render.Info(cfg.Language), langUsage))
 	buf.WriteString(fmt.Sprintf("|-%s, --%s|%s|%v|\n",
 		codeLangShortKey, config.CodeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
-	buf.WriteString(fmt.Sprintf("|-%s, --%s|%s|%v|\n",
-		cacheDirShortKey, config.CacheDirKey, render.Info(cfg.CacheDir), cacheDirUsage))
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil
 }
@@ -85,12 +91,7 @@ func setConfig(context *cli.Context, localFlags []string) error {
 			curCfg.Language = context.String(config.LangKey)
 		case config.CodeLangKey:
 			curCfg.CodeLang = context.String(config.CodeLangKey)
-		case config.CacheDirKey:
-			curCfg.CacheDir = context.String(config.CacheDirKey)
 		}
-	}
-	if curCfg.CodeLang == config.CodeLangGoShort {
-		curCfg.CodeLang = config.CodeLangGo
 	}
 	return config.Write(curCfg)
 }
