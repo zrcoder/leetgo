@@ -21,15 +21,21 @@ type viewer struct {
 }
 
 func (c *viewer) Run() error {
+	if local.Exist(c.id) {
+		content, err := local.ReadMarkdown(c.id)
+		if err != nil {
+			return err
+		}
+		fmt.Print(render.MarkDown(string(content)))
+		return nil
+	}
+
 	c.spinner.Start()
 	question, err := mgr.Query(c.id)
 	c.spinner.Stop()
-
 	if err != nil {
 		return err
 	}
-
-	fmt.Print(render.MarkDown(question.MdContent)) // question.MdContent has "\n\n" suffix
-
+	fmt.Print(render.MarkDown(question.MdContent))
 	return local.Write(question)
 }

@@ -30,13 +30,15 @@ func editAction(context *cli.Context) error {
 	}
 
 	id := context.Args().First()
-	dir := local.GetDir(cfg, id)
-	_, err = os.Stat(dir)
-	if err != nil {
-		return err
+	if !local.Exist(id) {
+		return fmt.Errorf("Not picked yet, type `leetgo view %s`", id)
 	}
 
-	cmd := exec.Command("vim", fmt.Sprintf("+/%s", local.CodeStartFlag4Editor), local.GetCodeFile(cfg, id))
+	codeFile, markdownFile := local.GetCodeFile(cfg, id), local.GetMarkdownFile(cfg, id)
+	cmd := exec.Command(config.GetEditorCmd(cfg.Editor), "-p", codeFile, markdownFile)
+	if config.IsGolang(cfg) {
+		cmd.Args = append(cmd.Args, local.GetGoTestFile(cfg, id))
+	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

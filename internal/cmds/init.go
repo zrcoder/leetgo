@@ -1,12 +1,9 @@
 package cmds
 
 import (
-	"fmt"
-
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/config"
-	"github.com/zrcoder/leetgo/internal/render"
 )
 
 var Init = &cli.Command{
@@ -17,6 +14,7 @@ var Init = &cli.Command{
 	Flags: []cli.Flag{
 		langFlag,
 		codeLangFlag,
+		editorFlag,
 	},
 }
 
@@ -24,11 +22,7 @@ func initAction(context *cli.Context) error {
 	cfg := &config.Config{
 		Language: context.String(langFlag.Name),
 		CodeLang: context.String(codeLangFlag.Name),
+		Editor:   context.String(editorFlag.Name),
 	}
-	err := config.Write(cfg)
-	if err != nil {
-		return err
-	}
-	fmt.Println(render.Info("Succeed"))
-	return nil
+	return writeAndShow(cfg)
 }

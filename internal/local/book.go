@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/zrcoder/leetgo/internal/config"
@@ -46,13 +45,13 @@ func getDocs() ([]*model.Doc, error) {
 	for i, id := range ids {
 		doc := &model.Doc{}
 
-		question, err := Read(id)
+		content, err := ReadMarkdown(id)
 		if err != nil {
 			return nil, err
 		}
-
-		doc.Title = fmt.Sprintf("%s. %s", question.ID, question.Title)
-		doc.MarkdownContent = []byte(strings.TrimSpace(question.MdContent))
+		// TODO
+		// doc.Title = fmt.Sprintf("%s. %s", question.ID, question.Title)
+		doc.MarkdownContent = bytes.TrimSpace(content)
 		code, modTime, err := readAnswerCode(cfg, id)
 		if err != nil {
 			return nil, err
@@ -61,8 +60,8 @@ func getDocs() ([]*model.Doc, error) {
 		buf := bytes.NewBuffer(nil)
 		buf.WriteString("\n\n## My Solution:\n\n")
 		codeLang := cfg.CodeLang
-		if codeLang == config.CodeLangGo {
-			codeLang = config.CodeLangGoShort
+		if codeLang == "golang" {
+			codeLang = "go"
 		}
 		buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
 		buf.Write(code)

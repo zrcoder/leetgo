@@ -11,13 +11,18 @@ import (
 	"github.com/zrcoder/leetgo/internal/log"
 )
 
+type Meta struct {
+	ID         string
+	Title      string
+	Referer    string
+	Slug       string
+	Difficulty string
+}
+
 type Question struct {
 	// redefined
-	ID         string `json:"id"`
-	Title      string `json:"title"`
-	Referer    string `json:"referer"`
-	Difficulty string `json:"difficulty"`
-	MdContent  string `json:"mdContent"`
+	Meta
+	MdContent string `json:"mdContent"`
 
 	// original
 	QuestionID        string `json:"questionId"`
@@ -26,7 +31,6 @@ type Question struct {
 	CodeDefinition    string `json:"codeDefinition"`
 	SampleTestCase    string `json:"sampleTestCase"`
 	EnableRunCode     bool   `json:"enableRunCode"`
-	MetaData          string `json:"metaData"`
 	TranslatedContent string `json:"translatedContent"`
 }
 

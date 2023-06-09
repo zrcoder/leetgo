@@ -13,18 +13,10 @@ import (
 )
 
 const (
-	LangKey     = "lang"
-	CodeLangKey = "code"
-	CacheDirKey = "directory"
-
-	DefaultCacheDir = "leetgo"
 	DefaultLanguage = "en"
-	CodeLangGo      = "golang"
-	CodeLangGoShort = "go"
-	CodeLangJava    = "java"
-	CodeLangPython  = "python"
-	DefaultCodeLang = CodeLangGo
+	DefaultCodeLang = "go"
 	cnLanguage      = "cn"
+	DefaultEditor   = "neovim"
 
 	TokenKey   = "csrftoken"
 	SessionKey = "LEETCODE_SESSION"
@@ -32,28 +24,38 @@ const (
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
 
-	configFile = "leetgo.yaml"
+	configFile = "leetgo.json"
 )
 
 var (
-	errConfigNotExist = errors.New("no config found, you should init your project firstly, try `leetgo init`")
-	ErrInvalidLan     = errors.New("only cn or en language supported")
-	ErrInvalidCodeLan = errors.New("not supported code language")
-	AllowedLang       = map[string]bool{"cn": true, "en": true}
-	AllowedCodeLang   = map[string]bool{
-		"go":     true,
-		"golang": true,
-		"java":   true,
-		"python": true,
-		"cpp":    true,
-		"c++":    true,
-		"c":      true,
+	errConfigNotExist     = errors.New("no config found, try `leetgo init`")
+	ErrInvalidLan         = errors.New("only cn or en language supported")
+	ErrInvalidCodeLan     = errors.New("not supported code language")
+	ErrUnSupporttedEditor = errors.New("only vim and neovim/nvim supported")
+
+	codeLangExtensionDic = map[string]string{
+		"go":      ".go",
+		"golang":  ".go",
+		"java":    ".java",
+		"python":  ".py",
+		"python2": ".py",
+		"python3": ".py",
+		"cpp":     ".cpp",
+		"c++":     ".cpp",
+		"c":       ".c",
+		// TODO: add other language mappings
+	}
+	editorCmdDic = map[string]string{
+		"neovim": "nvim",
+		"nvim":   "nvim",
+		"vim":    "vim",
 	}
 )
 
 type Config struct {
 	Language string `json:"language,omitempty"`
 	CodeLang string `json:"codeLang,omitempty"`
+	Editor   string `json:"editor,omitempty"`
 	Token    string `json:"token"`
 	Session  string `json:"session"`
 }
@@ -61,6 +63,7 @@ type Config struct {
 var defaultCfg = &Config{
 	Language: DefaultLanguage,
 	CodeLang: DefaultCodeLang,
+	Editor:   DefaultEditor,
 }
 
 func Write(cfg *Config) error {
@@ -72,7 +75,8 @@ func Write(cfg *Config) error {
 			return err
 		}
 	}
-	data, _ := json.MarshalIndent(adapt(preCfg, cfg), "", "  ")
+	cfg = adapt(preCfg, cfg)
+	data, _ := json.MarshalIndent(cfg, "", "  ")
 	err = os.WriteFile(configFile, data, 0640)
 	log.Trace(err)
 	return err
@@ -86,9 +90,11 @@ func adapt(pre, cur *Config) *Config {
 	if cur.Language != "" {
 		pre.Language = cur.Language
 	}
-	// go -> golang
-	if pre.CodeLang == CodeLangGoShort {
-		pre.CodeLang = CodeLangGo
+	if pre.CodeLang == "golang" {
+		pre.CodeLang = "go"
+	}
+	if cur.Editor != "" {
+		pre.Editor = cur.Editor
 	}
 	return pre
 }
@@ -131,11 +137,29 @@ func Domain() string {
 	return enDomain
 }
 
-var CodeLangExtensionDic = map[string]string{
-	CodeLangGo:     ".go",
-	CodeLangJava:   ".java",
-	CodeLangPython: ".py",
-	// TODO: add other language mappings
+func GetCodeFileExt(codeLang string) string {
+	return codeLangExtensionDic[codeLang]
+}
+
+func IsGolang(cfg *Config) bool {
+	return cfg.CodeLang == "go" || cfg.CodeLang == "golang"
+}
+
+func SrpportedLang(lang string) bool {
+	return lang == "en" || lang == "cn"
+}
+
+func SupportedCodeLang(codeLang string) bool {
+	_, ok := codeLangExtensionDic[codeLang]
+	return ok
+}
+
+func SupportedEditor(editor string) bool {
+	_, ok := editorCmdDic[editor]
+	return ok
+}
+func GetEditorCmd(editor string) string {
+	return editorCmdDic[editor]
 }
 
 func GetCredentials() (string, string, error) {
