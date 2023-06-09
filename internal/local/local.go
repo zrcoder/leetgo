@@ -12,6 +12,7 @@ import (
 	"github.com/cweill/gotests"
 
 	"github.com/zrcoder/leetgo/internal/config"
+	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
 )
@@ -67,10 +68,14 @@ func Write(question *model.Question) error {
 	if err = writeCodeFile(question, cfg); err != nil {
 		return err
 	}
-	if config.IsGolang(cfg) {
-		return writeGoTestFile(question, cfg)
+	if !config.IsGolang(cfg) {
+		return nil
 	}
-	return nil
+	// write xxx_test.go and go.mod for local test
+	if err = writeGoTestFile(question, cfg); err != nil {
+		return err
+	}
+	return genGoModFile(question, cfg)
 }
 
 func writeMeta(question *model.Question, cfg *config.Config) error {
@@ -126,6 +131,10 @@ func writeGoTestFile(question *model.Question, cfg *config.Config) error {
 	const todoFlag = "// TODO: Add test cases."
 	content = bytes.Replace(content, []byte(todoFlag), []byte(todoFlag+sample), 1)
 	return os.WriteFile(testPath, content, 0640)
+}
+
+func genGoModFile(question *model.Question, cfg *config.Config) error {
+	return exec.Run(GetDir(cfg, question.ID), "go", "mod", "init", "ttt")
 }
 
 func makeDir(cfg *config.Config, id string) error {

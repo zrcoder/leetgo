@@ -11,16 +11,16 @@ import (
 )
 
 func NewSearcher(key string) Component {
-	return &Searcher{key: key, spinner: newSpinner("Searching")}
+	return &searcher{key: key, spinner: newSpinner("Searching")}
 }
 
-type Searcher struct {
+type searcher struct {
 	key string
 
 	spinner *spinner.Spinner
 }
 
-func (s *Searcher) Run() error {
+func (s *searcher) Run() error {
 	s.spinner.Start()
 	sps, err := mgr.Search(s.key)
 	s.spinner.Stop()

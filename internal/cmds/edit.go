@@ -3,12 +3,11 @@ package cmds
 import (
 	"errors"
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/config"
+	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/local"
 )
 
@@ -35,12 +34,10 @@ func editAction(context *cli.Context) error {
 	}
 
 	codeFile, markdownFile := local.GetCodeFile(cfg, id), local.GetMarkdownFile(cfg, id)
-	cmd := exec.Command(config.GetEditorCmd(cfg.Editor), "-p", codeFile, markdownFile)
+	cmd := config.GetEditorCmd(cfg.Editor)
+	args := []string{"-p", codeFile, markdownFile}
 	if config.IsGolang(cfg) {
-		cmd.Args = append(cmd.Args, local.GetGoTestFile(cfg, id))
+		args = append(args, local.GetGoTestFile(cfg, id))
 	}
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return exec.Run("", cmd, args...)
 }
