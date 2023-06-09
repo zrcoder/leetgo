@@ -4,6 +4,11 @@ Cli APP for Leetcode.
 
 ![examples](example.gif)
 
+## Inspired by
+
+<https://github.com/j178/leetgo>
+
 ## TODO
 
-- add sub commands: `solve`, `test`, `submit`
+- improve command: `book`
+- add sub commands: `test`, `submit`

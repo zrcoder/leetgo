@@ -31,7 +31,7 @@ func editAction(context *cli.Context) error {
 
 	id := context.Args().First()
 	if !local.Exist(id) {
-		return fmt.Errorf("Not picked yet, type `leetgo view %s`", id)
+		return fmt.Errorf("not picked yet, type `leetgo view %s`", id)
 	}
 
 	codeFile, markdownFile := local.GetCodeFile(cfg, id), local.GetMarkdownFile(cfg, id)

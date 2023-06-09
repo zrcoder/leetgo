@@ -30,44 +30,46 @@ var Config = &cli.Command{
 	Action:    configAction,
 }
 
-var langFlag = &cli.StringFlag{
-	Name:    langKey,
-	Aliases: []string{langShortKey},
-	Value:   config.DefaultLanguage,
-	Usage:   langUsage,
-	Action: func(ctx *cli.Context, s string) error {
-		if !config.SrpportedLang(s) {
-			return config.ErrInvalidLan
-		}
-		return nil
-	},
-}
+var (
+	langFlag = &cli.StringFlag{
+		Name:    langKey,
+		Aliases: []string{langShortKey},
+		Value:   config.DefaultLanguage,
+		Usage:   langUsage,
+		Action: func(ctx *cli.Context, s string) error {
+			if !config.SrpportedLang(s) {
+				return config.ErrInvalidLan
+			}
+			return nil
+		},
+	}
 
-var codeLangFlag = &cli.StringFlag{
-	Name:    codeLangKey,
-	Aliases: []string{codeLangShortKey},
-	Value:   config.DefaultCodeLang,
-	Usage:   codeLangUsage,
-	Action: func(ctx *cli.Context, s string) error {
-		if !config.SupportedCodeLang(s) {
-			return config.ErrInvalidCodeLan
-		}
-		return nil
-	},
-}
+	codeLangFlag = &cli.StringFlag{
+		Name:    codeLangKey,
+		Aliases: []string{codeLangShortKey},
+		Value:   config.DefaultCodeLang,
+		Usage:   codeLangUsage,
+		Action: func(ctx *cli.Context, s string) error {
+			if !config.SupportedCodeLang(s) {
+				return config.ErrInvalidCodeLan
+			}
+			return nil
+		},
+	}
 
-var editorFlag = &cli.StringFlag{
-	Name:    editorKey,
-	Aliases: []string{editorShortKey},
-	Value:   config.DefaultEditor,
-	Usage:   editorUsage,
-	Action: func(ctx *cli.Context, s string) error {
-		if !config.SupportedEditor(s) {
-			return config.ErrUnSupporttedEditor
-		}
-		return nil
-	},
-}
+	editorFlag = &cli.StringFlag{
+		Name:    editorKey,
+		Aliases: []string{editorShortKey},
+		Value:   config.DefaultEditor,
+		Usage:   editorUsage,
+		Action: func(ctx *cli.Context, s string) error {
+			if !config.SupportedEditor(s) {
+				return config.ErrUnSupporttedEditor
+			}
+			return nil
+		},
+	}
+)
 
 func configAction(context *cli.Context) error {
 	localFlags := context.LocalFlagNames()
@@ -89,11 +91,12 @@ func showConfig() error {
 	}
 
 	buf := &strings.Builder{}
-	buf.WriteString("|flag|current value|description|\n| --- | --- | --- |\n")
-	const lineFmt = "|-%s, --%s|%s|%v|\n"
-	buf.WriteString(fmt.Sprintf(lineFmt, langShortKey, langKey, render.Info(cfg.Language), langUsage))
-	buf.WriteString(fmt.Sprintf(lineFmt, codeLangShortKey, codeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
-	buf.WriteString(fmt.Sprintf(lineFmt, editorShortKey, editorKey, render.Info(cfg.Editor), editorUsage))
+	buf.WriteString("|flag|current value|description|\n")
+	buf.WriteString("| --- | --- | --- |\n")
+	const rowTmp = "|-%s, --%s|%s|%v|\n"
+	buf.WriteString(fmt.Sprintf(rowTmp, langShortKey, langKey, render.Info(cfg.Language), langUsage))
+	buf.WriteString(fmt.Sprintf(rowTmp, codeLangShortKey, codeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
+	buf.WriteString(fmt.Sprintf(rowTmp, editorShortKey, editorKey, render.Info(cfg.Editor), editorUsage))
 	fmt.Println(render.MarkDown(buf.String()))
 
 	return nil
@@ -104,6 +107,7 @@ func setConfig(context *cli.Context, localFlags []string) error {
 	if err != nil {
 		return err
 	}
+
 	for _, v := range localFlags {
 		switch v {
 		case langKey:

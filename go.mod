@@ -6,9 +6,11 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown v1.3.6
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/briandowns/spinner v1.21.0
+	github.com/carlmjohnson/requests v0.23.4
 	github.com/charmbracelet/glamour v0.6.0
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/cweill/gotests v1.6.0
+	github.com/j178/kooky v0.0.0-20230609034248-af88dcd40695
 	github.com/urfave/cli/v2 v2.24.4
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
 	github.com/zrcoder/tdoc v0.0.0-20230217104111-577fac39fa36

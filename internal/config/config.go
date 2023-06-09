@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"strings"
 
-	"github.com/zellyn/kooky"
 	_ "github.com/zellyn/kooky/browser/all"
 
 	"github.com/zrcoder/leetgo/internal/log"
@@ -17,9 +15,6 @@ const (
 	DefaultCodeLang = "go"
 	cnLanguage      = "cn"
 	DefaultEditor   = "neovim"
-
-	TokenKey   = "csrftoken"
-	SessionKey = "LEETCODE_SESSION"
 
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
@@ -56,8 +51,6 @@ type Config struct {
 	Language string `json:"language,omitempty"`
 	CodeLang string `json:"codeLang,omitempty"`
 	Editor   string `json:"editor,omitempty"`
-	Token    string `json:"token"`
-	Session  string `json:"session"`
 }
 
 var defaultCfg = &Config{
@@ -137,6 +130,10 @@ func Domain() string {
 	return enDomain
 }
 
+func IsCN(cfg *Config) bool {
+	return cfg.Language == cnLanguage
+}
+
 func GetCodeFileExt(codeLang string) string {
 	return codeLangExtensionDic[codeLang]
 }
@@ -160,70 +157,4 @@ func SupportedEditor(editor string) bool {
 }
 func GetEditorCmd(editor string) string {
 	return editorCmdDic[editor]
-}
-
-func GetCredentials() (string, string, error) {
-	log.Trace("get credentials from config")
-	cfg, err := Get()
-	if err != nil {
-		return "", "", err
-	}
-
-	token := cfg.Token
-	session := cfg.Token
-	if token != "" && session != "" {
-		return token, session, nil
-	}
-
-	domain := strings.TrimPrefix(enDomain, "https://")
-	if cfg.Language == cnLanguage {
-		domain = strings.TrimPrefix(cnDomain, "https://")
-	}
-	token, session, err = getCredentialsFromBrowser(domain)
-	if err != nil {
-		return "", "", err
-	}
-
-	cfg.Token = token
-	cfg.Session = session
-	return token, session, Write(cfg)
-}
-
-func UpdateCredentials() error {
-	cfg, err := Get()
-	if err != nil {
-		return err
-	}
-	domain := strings.TrimPrefix(enDomain, "https://")
-	if cfg.Language == cnLanguage {
-		domain = strings.TrimPrefix(cnDomain, "https://")
-	}
-	token, session, err := getCredentialsFromBrowser(domain)
-	if err != nil {
-		return err
-	}
-
-	cfg.Token = token
-	cfg.Session = session
-	return Write(cfg)
-}
-
-func getCredentialsFromBrowser(domain string) (string, string, error) {
-	log.Trace("get credentials from browser")
-	tokenCookies := kooky.ReadCookies(
-		kooky.Valid,
-		kooky.DomainContains(domain),
-		kooky.Name(TokenKey),
-	)
-	sessionCookies := kooky.ReadCookies(
-		kooky.Valid,
-		kooky.DomainContains(domain),
-		kooky.Name(SessionKey),
-	)
-	if len(sessionCookies) == 0 || len(tokenCookies) == 0 {
-		err := errors.New("failed to get credentials")
-		log.Trace(err)
-		return "", "", err
-	}
-	return tokenCookies[0].Value, sessionCookies[0].Value, nil
 }

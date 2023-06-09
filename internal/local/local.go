@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cweill/gotests"
 
@@ -90,7 +91,7 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 	codeFile := GetCodeFile(cfg, id)
 	buf := bytes.NewBuffer(nil)
 	if config.IsGolang(cfg) {
-		line := fmt.Sprintf("package lc%s\n\n", id)
+		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.Slug, "-", "_"))
 		buf.WriteString(line)
 	}
 	codeLang := cfg.CodeLang
