@@ -20,7 +20,7 @@ func GetCredentials() (string, string, error) {
 }
 
 func getCredentialsFromBrowser(domain string) (string, string, error) {
-	log.Trace("get credentials from browser")
+	log.Debug("get credentials from browser")
 	tokenCookies := kooky.ReadCookies(
 		kooky.Valid,
 		kooky.DomainContains(domain),
@@ -33,7 +33,7 @@ func getCredentialsFromBrowser(domain string) (string, string, error) {
 	)
 	if len(sessionCookies) == 0 || len(tokenCookies) == 0 {
 		err := errors.New("failed to get credentials")
-		log.Trace(err)
+		log.Debug(err)
 		return "", "", err
 	}
 	return tokenCookies[0].Value, sessionCookies[0].Value, nil

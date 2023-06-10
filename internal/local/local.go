@@ -20,7 +20,7 @@ import (
 const (
 	codeFileName = "solution"
 	markdownFile = "question.md"
-	metaFile     = "meta.json"
+	metaFile     = "question.json"
 
 	codeStartFlag = "// @submit start\n"
 	codeEndFlag   = "// @submit end\n"
@@ -33,25 +33,15 @@ var (
 func Exist(id string) bool {
 	cfg, err := config.Get()
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return false
 	}
 	_, err = os.Stat(GetDir(cfg, id))
 	return err == nil
 }
 
-func ReadMarkdown(id string) ([]byte, error) {
-	log.Trace("begin to read question.md in local, id:", id)
-	cfg, err := config.Get()
-	if err != nil {
-		return nil, err
-	}
-	dir := GetDir(cfg, id)
-	return os.ReadFile(filepath.Join(dir, markdownFile))
-}
-
 func Write(question *model.Question) error {
-	log.Trace("begin to write question in local, id:", question.ID)
+	log.Debug("begin to write question in local, id:", question.ID)
 	cfg, err := config.Get()
 	if err != nil {
 		return err
@@ -76,6 +66,47 @@ func Write(question *model.Question) error {
 		return err
 	}
 	return genGoModFile(question, cfg)
+}
+
+func GetMarkdown(id string) ([]byte, error) {
+	log.Debug("begin to read question.md in local, id:", id)
+	cfg, err := config.Get()
+	if err != nil {
+		return nil, err
+	}
+	dir := GetDir(cfg, id)
+	return os.ReadFile(filepath.Join(dir, markdownFile))
+}
+
+func GetTypedCode(cfg *config.Config, id string) ([]byte, error) {
+	log.Debug("begin to read typed code in local, id:", id)
+	path := GetCodeFile(cfg, id)
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	i := bytes.Index(content, []byte(codeStartFlag))
+	if i == -1 {
+		return content, nil
+	}
+	content = content[i+len(codeStartFlag):]
+	i = bytes.LastIndex(content, []byte(codeEndFlag))
+	if i == -1 {
+		return content, nil
+	}
+	return content[:i], nil
+}
+
+func GetQuestion(cfg *config.Config, id string) (*model.Question, error) {
+	log.Debug("begin to read question.json in local, id:", id)
+	path := getMetaFile(cfg, id)
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	res := &model.Question{}
+	err = json.Unmarshal(content, res)
+	return res, err
 }
 
 func writeMeta(question *model.Question, cfg *config.Config) error {
@@ -139,7 +170,7 @@ func genGoModFile(question *model.Question, cfg *config.Config) error {
 
 func makeDir(cfg *config.Config, id string) error {
 	err := os.MkdirAll(GetDir(cfg, id), 0777)
-	log.Trace(err)
+	log.Debug(err)
 	return err
 }
 func GetDir(cfg *config.Config, id string) string {

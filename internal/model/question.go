@@ -25,13 +25,16 @@ type Question struct {
 	MdContent string `json:"mdContent"`
 
 	// original
-	QuestionID        string `json:"questionId"`
-	Content           string `json:"content"`
-	Stats             string `json:"stats"`
-	CodeDefinition    string `json:"codeDefinition"`
-	SampleTestCase    string `json:"sampleTestCase"`
-	EnableRunCode     bool   `json:"enableRunCode"`
-	TranslatedContent string `json:"translatedContent"`
+	QuestionID           string   `json:"questionId"`
+	Content              string   `json:"content"`
+	Stats                string   `json:"stats"`
+	CodeDefinition       string   `json:"codeDefinition"`
+	SampleTestCase       string   `json:"sampleTestCase"`
+	JsonExampleTestcases []string `json:"jsonExampleTestcases"`
+	ExampleTestcaseList  []string `json:"exampleTestcaseList"`
+	ExampleTestcases     string   `json:"exampleTestcases"`
+	EnableRunCode        bool     `json:"enableRunCode"`
+	TranslatedContent    string   `json:"translatedContent"`
 }
 
 func (q *Question) TransformContent() error {
@@ -66,7 +69,7 @@ func (q *Question) TransformContent() error {
 	converter.AddRules(replaceSub, replaceSup, replaceEm)
 	content, err = converter.ConvertString(content)
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return err
 	}
 	content = strings.TrimSpace(content)
@@ -83,7 +86,7 @@ func (q *Question) ParseCodes() ([]*Code, error) {
 	q.CodeDefinition = strings.ReplaceAll(q.CodeDefinition, `\\n`, `\n`)
 	var res []*Code
 	err := json.Unmarshal([]byte(q.CodeDefinition), &res)
-	log.Trace(err)
+	log.Debug(err)
 	return res, err
 }
 
@@ -99,4 +102,23 @@ type GetQuestionResponseData struct {
 }
 type GetQuestionResponse struct {
 	Data GetQuestionResponseData `json:"data"`
+}
+
+func (q *Question) ParseDefaultTests() []string {
+	var cases []string
+	if len(q.JsonExampleTestcases) > 0 {
+		for _, c := range q.JsonExampleTestcases {
+			cases = append(cases, strings.Split(c, "\n")...)
+		}
+	} else if len(q.ExampleTestcaseList) > 0 {
+		for _, c := range q.ExampleTestcaseList {
+			cases = append(cases, strings.Split(c, "\n")...)
+		}
+	} else if q.ExampleTestcases != "" {
+		cases = strings.Split(q.ExampleTestcases, "\n")
+	} else if q.SampleTestCase != "" {
+		cases = strings.Split(q.SampleTestCase, "\n")
+	}
+	return cases
+
 }

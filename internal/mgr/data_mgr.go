@@ -14,7 +14,6 @@ import (
 func Query(id string) (*model.Question, error) {
 	list, err := remote.GetList()
 	if err != nil {
-		log.Trace(err)
 		return nil, err
 	}
 	for _, sp := range list.StatStatusPairs {
@@ -24,7 +23,7 @@ func Query(id string) (*model.Question, error) {
 		}
 		if sp.PaidOnly {
 			err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
-			log.Trace(err)
+			log.Debug(err)
 			return nil, err
 		}
 		return remote.GetQuestion(&sp)
@@ -52,7 +51,7 @@ func Search(keyWords string) ([]model.StatStatusPair, error) {
 		}
 	}
 	if len(res) == 0 {
-		log.Trace("no questions found")
+		log.Debug("no questions found")
 		return nil, fmt.Errorf("no questions found for `%s`", keyWords)
 	}
 

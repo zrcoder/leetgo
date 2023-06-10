@@ -45,7 +45,7 @@ func getDocs() ([]*model.Doc, error) {
 	for i, id := range ids {
 		doc := &model.Doc{}
 
-		content, err := ReadMarkdown(id)
+		content, err := GetMarkdown(id)
 		if err != nil {
 			return nil, err
 		}
@@ -94,20 +94,20 @@ func readAnswerCode(cfg *config.Config, id string) ([]byte, *time.Time, error) {
 	path := GetCodeFile(cfg, id)
 	f, err := os.Open(path)
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return nil, nil, err
 	}
 	defer func() { _ = f.Close() }()
 
 	stat, err := f.Stat()
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return nil, nil, err
 	}
 
 	data, err := io.ReadAll(f)
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return nil, nil, err
 	}
 
@@ -138,7 +138,7 @@ func writeMds(docs []*model.Doc) (string, error) {
 
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		return "", err
 	}
 
@@ -147,7 +147,7 @@ func writeMds(docs []*model.Doc) (string, error) {
 		content := string(doc.MarkdownContent)
 		err = os.WriteFile(name, []byte(content), 0640)
 		if err != nil {
-			log.Trace(err)
+			log.Debug(err)
 			return "", err
 		}
 	}

@@ -71,7 +71,7 @@ func Write(cfg *Config) error {
 	cfg = adapt(preCfg, cfg)
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	err = os.WriteFile(configFile, data, 0640)
-	log.Trace(err)
+	log.Debug(err)
 	return err
 }
 
@@ -95,7 +95,7 @@ func adapt(pre, cur *Config) *Config {
 func Read() ([]byte, error) {
 	_, err := os.Stat(configFile)
 	if err != nil {
-		log.Trace(err)
+		log.Debug(err)
 		if os.IsNotExist(err) {
 			err = errConfigNotExist
 		}
@@ -103,7 +103,7 @@ func Read() ([]byte, error) {
 	}
 
 	data, err := os.ReadFile(configFile)
-	log.Trace(err)
+	log.Debug(err)
 
 	return data, err
 }
@@ -115,7 +115,7 @@ func Get() (*Config, error) {
 	}
 	res := &Config{}
 	err = json.Unmarshal(data, &res)
-	log.Trace(err)
+	log.Debug(err)
 	return res, err
 }
 

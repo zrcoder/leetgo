@@ -22,7 +22,7 @@ type viewer struct {
 
 func (c *viewer) Run() error {
 	if local.Exist(c.id) {
-		content, err := local.ReadMarkdown(c.id)
+		content, err := local.GetMarkdown(c.id)
 		if err != nil {
 			return err
 		}
