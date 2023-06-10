@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	errConfigNotExist     = errors.New("no config found, try `leetgo init`")
+	ErrConfigNotExist     = errors.New("no config found, try `leetgo init`")
 	ErrInvalidLan         = errors.New("only cn or en language supported")
 	ErrInvalidCodeLan     = errors.New("not supported code language")
 	ErrUnSupporttedEditor = errors.New("only vim and neovim/nvim supported")
@@ -59,23 +59,23 @@ var defaultCfg = &Config{
 	Editor:   DefaultEditor,
 }
 
-func Write(cfg *Config) error {
-	preCfg, err := Get()
+func Write(cfg *Config) (*Config, error) {
+	storedCfg, err := Get()
 	if err != nil {
-		if err == errConfigNotExist {
-			preCfg = defaultCfg
+		if err == ErrConfigNotExist {
+			storedCfg = defaultCfg
 		} else {
-			return err
+			return nil, err
 		}
 	}
-	cfg = adapt(preCfg, cfg)
+	cfg = merge(storedCfg, cfg)
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	err = os.WriteFile(configFile, data, 0640)
 	log.Debug(err)
-	return err
+	return cfg, err
 }
 
-func adapt(pre, cur *Config) *Config {
+func merge(pre, cur *Config) *Config {
 	// struct Config is very simple now, if it becomes complex, use json marshal unmarshal instead
 	if cur.CodeLang != "" {
 		pre.CodeLang = cur.CodeLang
@@ -97,7 +97,7 @@ func Read() ([]byte, error) {
 	if err != nil {
 		log.Debug(err)
 		if os.IsNotExist(err) {
-			err = errConfigNotExist
+			err = ErrConfigNotExist
 		}
 		return nil, err
 	}

@@ -13,37 +13,6 @@ import (
 	"github.com/zrcoder/leetgo/internal/model"
 )
 
-const (
-	questionQueryTmp = `
-query getQuestionDetail($titleSlug: String!) {
-  isCurrentUserAuthenticated
-  question(titleSlug: $titleSlug) {
-    questionId
-    content
-    stats
-    codeDefinition
-    sampleTestCase
-    enableRunCode
-    metaData
-    translatedContent
-  }
-}`
-)
-
-// common config for request client
-func cfg(rb *requests.Builder) {
-	rb.BaseURL(config.Domain())
-
-	if mod.IsDebug() {
-		u, err := rb.URL()
-		if err == nil {
-			log.Debug("request url:", u.String())
-		} else {
-			log.Debug(err)
-		}
-	}
-}
-
 func GetList() (*model.List, error) {
 	res := &model.List{}
 	err := requests.New(cfg).
@@ -55,6 +24,29 @@ func GetList() (*model.List, error) {
 }
 
 func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
+	const questionQueryTmp = `
+	query getQuestionDetail($titleSlug: String!) {
+	  isCurrentUserAuthenticated
+	  question(titleSlug: $titleSlug) {
+		questionId
+		content
+		stats
+		codeDefinition
+		sampleTestCase
+		enableRunCode
+		metaData
+		translatedContent
+	  }
+	}`
+
+	body := map[string]any{
+		"query": questionQueryTmp,
+		"variables": map[string]string{
+			"titleSlug": sp.Stat.QuestionTitleSlug,
+		},
+		"operationName": "getQuestionDetail",
+	}
+
 	referer := fmt.Sprintf("%s/problems/%s",
 		config.Domain(),
 		sp.Stat.QuestionTitleSlug)
@@ -64,13 +56,7 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 		ContentType("application/json").
 		Header("Cache-Control", "no-cache").
 		Header("Referer", referer).
-		BodyJSON(map[string]any{
-			"query": questionQueryTmp,
-			"variables": map[string]string{
-				"titleSlug": sp.Stat.QuestionTitleSlug,
-			},
-			"operationName": "getQuestionDetail",
-		}).
+		BodyJSON(body).
 		ToJSON(res).
 		Fetch(context.Background())
 	if err != nil {
@@ -90,7 +76,7 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 
 func Test(question *model.Question, typedCode, codeLang string, tests []string) (*model.InterpretSolutionResult, error) {
 	res := &model.InterpretSolutionResult{}
-	builder := requests.New(cfg).
+	err := requests.New(cfg).
 		Pathf("/problems/%s/interpret_solution", question.Slug).
 		BodyJSON(map[string]any{
 			"lang":        codeLang,
@@ -98,9 +84,8 @@ func Test(question *model.Question, typedCode, codeLang string, tests []string) 
 			"typed_code":  typedCode,
 			"data_input":  strings.Join(tests, "\n"),
 		}).
-		ToJSON(res)
-
-	err := builder.Fetch(context.Background())
+		ToJSON(res).
+		Fetch(context.Background())
 	return res, err
 }
 
@@ -109,4 +94,18 @@ func Check(submitId string) (string, error) {
 	res := ""
 	err := requests.URL(path).ToString(&res).Fetch(context.Background())
 	return res, err
+}
+
+// common config for request client
+func cfg(rb *requests.Builder) {
+	rb.BaseURL(config.Domain())
+
+	if mod.IsDebug() {
+		u, err := rb.URL()
+		if err == nil {
+			log.Debug("request url:", u.String())
+		} else {
+			log.Debug(err)
+		}
+	}
 }

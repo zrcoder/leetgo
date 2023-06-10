@@ -15,9 +15,6 @@ func Debug(x ...any) {
 	if !mod.IsDebug() {
 		return
 	}
-	if len(x) == 0 || x[0] == nil {
-		return
-	}
 	log.Helper()
 	log.Debug(x)
 }

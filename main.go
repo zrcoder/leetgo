@@ -15,7 +15,6 @@ func main() {
 		Name:  "leetgo",
 		Usage: "my app for Leetcode",
 		Commands: []*cli.Command{
-			cmds.Init,
 			cmds.Config,
 			cmds.Search,
 			cmds.View,

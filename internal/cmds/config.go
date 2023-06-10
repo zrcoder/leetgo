@@ -6,6 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/zrcoder/leetgo/internal/comp"
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/render"
 )
@@ -72,61 +73,26 @@ var (
 )
 
 func configAction(context *cli.Context) error {
-	localFlags := context.LocalFlagNames()
-	if len(localFlags) == 0 {
-		return showConfig()
+	show := func(cfg *config.Config) {
+		buf := &strings.Builder{}
+		buf.WriteString("|flag|current value|description|\n")
+		buf.WriteString("| --- | --- | --- |\n")
+		const rowTmp = "|-%s, --%s|%s|%v|\n"
+		buf.WriteString(fmt.Sprintf(rowTmp, langShortKey, langKey, render.Info(cfg.Language), langUsage))
+		buf.WriteString(fmt.Sprintf(rowTmp, codeLangShortKey, codeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
+		buf.WriteString(fmt.Sprintf(rowTmp, editorShortKey, editorKey, render.Info(cfg.Editor), editorUsage))
+		fmt.Println(render.MarkDown(buf.String()))
 	}
-	err := setConfig(context, localFlags)
-	if err != nil {
-		return err
-	}
-	fmt.Println(render.Info("Success"))
-	return nil
-}
-
-func showConfig() error {
-	cfg, err := config.Get()
-	if err != nil {
-		return err
-	}
-
-	buf := &strings.Builder{}
-	buf.WriteString("|flag|current value|description|\n")
-	buf.WriteString("| --- | --- | --- |\n")
-	const rowTmp = "|-%s, --%s|%s|%v|\n"
-	buf.WriteString(fmt.Sprintf(rowTmp, langShortKey, langKey, render.Info(cfg.Language), langUsage))
-	buf.WriteString(fmt.Sprintf(rowTmp, codeLangShortKey, codeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
-	buf.WriteString(fmt.Sprintf(rowTmp, editorShortKey, editorKey, render.Info(cfg.Editor), editorUsage))
-	fmt.Println(render.MarkDown(buf.String()))
-
-	return nil
-}
-
-func setConfig(context *cli.Context, localFlags []string) error {
-	curCfg, err := config.Get()
-	if err != nil {
-		return err
-	}
-
-	for _, v := range localFlags {
+	cfg := &config.Config{}
+	for _, v := range context.LocalFlagNames() {
 		switch v {
 		case langKey:
-			curCfg.Language = context.String(langKey)
+			cfg.Language = context.String(langKey)
 		case codeLangKey:
-			curCfg.CodeLang = context.String(codeLangKey)
+			cfg.CodeLang = context.String(codeLangKey)
 		case editorKey:
-			curCfg.Editor = context.String(editorKey)
+			cfg.Editor = context.String(editorKey)
 		}
 	}
-	return writeAndShow(curCfg)
-}
-
-func writeAndShow(cfg *config.Config) error {
-	err := config.Write(cfg)
-	if err != nil {
-		return err
-	}
-	fmt.Println(render.Info("Succeed"))
-	showConfig()
-	return nil
+	return comp.NewConfiger(cfg, len(context.LocalFlagNames()) > 0, show).Run()
 }
