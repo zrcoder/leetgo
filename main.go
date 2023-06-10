@@ -23,13 +23,8 @@ func main() {
 			cmds.Book,
 		},
 	}
-	app.Action = func(ctx *cli.Context) error {
-		md, _ := app.ToMarkdown()
-		fmt.Println(render.MarkDown(md))
-		return nil
-	}
 
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(render.Error(err.Error()))
+		fmt.Println(render.Error("ERROR"), err.Error())
 	}
 }

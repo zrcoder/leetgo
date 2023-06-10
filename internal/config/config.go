@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	ErrConfigNotExist     = errors.New("no config found, try `leetgo init`")
+	ErrConfigNotExist     = errors.New("no config found, try `leetgo config`")
 	ErrInvalidLan         = errors.New("only cn or en language supported")
 	ErrInvalidCodeLan     = errors.New("not supported code language")
 	ErrUnSupporttedEditor = errors.New("only vim and neovim/nvim supported")

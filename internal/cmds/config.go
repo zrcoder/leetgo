@@ -26,6 +26,7 @@ const (
 
 var Config = &cli.Command{
 	Name:      "config",
+	Usage:     "show or set config of your leetgo project",
 	UsageText: "show current config if no flags, use flags to set",
 	Flags:     []cli.Flag{langFlag, codeLangFlag, editorFlag},
 	Action:    configAction,

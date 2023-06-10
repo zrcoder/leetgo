@@ -3,11 +3,11 @@ module github.com/zrcoder/leetgo
 go 1.19
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/JohannesKaufmann/html-to-markdown v1.3.6
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/briandowns/spinner v1.21.0
 	github.com/carlmjohnson/requests v0.23.4
-	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/glamour v0.6.0
 	github.com/charmbracelet/lipgloss v0.7.1
 	github.com/charmbracelet/log v0.2.2
@@ -19,16 +19,15 @@ require (
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/Velocidex/json v0.0.0-20220224052537-92f3c0326e5a // indirect
 	github.com/Velocidex/ordereddict v0.0.0-20221110130714-6a7cb85851cd // indirect
 	github.com/Velocidex/yaml/v2 v2.2.8 // indirect
 	github.com/alecthomas/chroma v0.10.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89 // indirect
+	github.com/charmbracelet/bubbles v0.15.0 // indirect
 	github.com/charmbracelet/bubbletea v0.23.1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
