@@ -7,27 +7,9 @@ import (
 	"github.com/zrcoder/leetgo/internal/render"
 )
 
-type StatusCode int
-
-const (
-	Accepted            StatusCode = 10
-	WrongAnswer         StatusCode = 11
-	MemoryLimitExceeded StatusCode = 12
-	OutputLimitExceeded StatusCode = 13
-	TimeLimitExceeded   StatusCode = 14
-	RuntimeError        StatusCode = 15
-	CompileError        StatusCode = 20
-)
-
-type TestResult struct {
-	InterpretExpectedId string `json:"interpret_expected_id"`
-	InterpretId         string `json:"interpret_id"`
-	TestCase            string `json:"test_case"`
-}
-
-type CheckResult interface {
-	Display(q *Question) string
-	GetState() string
+type RunResult interface {
+	Display() string
+	Result() string
 }
 
 type TestCheckResult struct {
@@ -42,66 +24,6 @@ type TestCheckResult struct {
 	CorrectAnswer      bool     `json:"correct_answer"` // true means all passed
 	CodeOutput         []string `json:"code_output"`    // output to stdout of our code
 	ExpectedCodeAnswer []string `json:"expected_code_answer"`
-}
-
-func (r *TestCheckResult) Display() string {
-	stdout := ""
-	if len(r.CodeOutput) > 1 {
-		stdout = "\nStdout:        " + strings.Join(r.CodeOutput, "↩ ")
-	}
-	switch StatusCode(r.StatusCode) {
-	case Accepted:
-		if r.CorrectAnswer {
-			return fmt.Sprintf(
-				"\n%s\n%s%s%s%s%s\n",
-				render.Infof("√ %s", r.StatusMsg),
-				fmt.Sprintf("\nPassed cases:  %s", formatCompare(r.CompareResult)),
-				fmt.Sprintf("\nInput:         %s", strings.ReplaceAll(r.InputData, "\n", "↩ ")),
-				fmt.Sprintf("\nOutput:        %s", strings.Join(r.CodeAnswer, "↩ ")),
-				stdout,
-				fmt.Sprintf("\nExpected:      %s", strings.Join(r.ExpectedCodeAnswer, "↩ ")),
-			)
-		} else {
-			return fmt.Sprintf(
-				"\n%s\n%s%s%s%s%s\n",
-				render.Fatal(" × Wrong Answer"),
-				fmt.Sprintf("\nPassed cases:  %s", formatCompare(r.CompareResult)),
-				fmt.Sprintf("\nInput:         %s", strings.ReplaceAll(r.InputData, "\n", "↩ ")),
-				fmt.Sprintf("\nOutput:        %s", strings.Join(r.CodeAnswer, "↩ ")),
-				stdout,
-				fmt.Sprintf("\nExpected:      %s", strings.Join(r.ExpectedCodeAnswer, "↩ ")),
-			)
-		}
-	case MemoryLimitExceeded, TimeLimitExceeded, OutputLimitExceeded:
-		return render.Warnf("\n × %s\n", r.StatusMsg)
-	case RuntimeError:
-		return fmt.Sprintf(
-			"\n%s\n%s\n\n%s\n",
-			render.Errorf(" × %s", r.StatusMsg),
-			fmt.Sprintf("Passed cases:   %s", formatCompare(r.CompareResult)),
-			render.Trace(r.FullRuntimeError),
-		)
-	case CompileError:
-		return fmt.Sprintf(
-			"\n%s\n\n%s\n",
-			render.Errorf(" × %s", r.StatusMsg),
-			render.Trace(r.FullCompileError),
-		)
-	default:
-		return fmt.Sprintf("\n%s\n", render.Errorf(" × %s", r.StatusMsg))
-	}
-}
-
-func formatCompare(s string) string {
-	var sb strings.Builder
-	for _, c := range s {
-		if c == '1' {
-			sb.WriteString(render.Info("√"))
-		} else {
-			sb.WriteString(render.Error("×"))
-		}
-	}
-	return sb.String()
 }
 
 type SubmitCheckResult struct {
@@ -123,51 +45,131 @@ type SubmitCheckResult struct {
 	FullRuntimeError  string  `json:"full_runtime_error"`
 }
 
-func (r *SubmitCheckResult) Display() string {
+type StatusCode int
+
+const (
+	Accepted            StatusCode = 10
+	WrongAnswer         StatusCode = 11
+	MemoryLimitExceeded StatusCode = 12
+	OutputLimitExceeded StatusCode = 13
+	TimeLimitExceeded   StatusCode = 14
+	RuntimeError        StatusCode = 15
+	CompileError        StatusCode = 20
+)
+
+func (tr *TestCheckResult) Display() string {
 	stdout := ""
-	if len(r.CodeOutput) > 1 {
-		stdout = "\nStdout:        " + strings.ReplaceAll(r.StdOutput, "\n", "↩ ")
+	if len(tr.CodeOutput) > 1 {
+		stdout = "\nStdout:        " + strings.Join(tr.CodeOutput, "↩ ")
 	}
-	switch StatusCode(r.StatusCode) {
+	switch StatusCode(tr.StatusCode) {
+	case Accepted:
+		if tr.CorrectAnswer {
+			return fmt.Sprintf(
+				"\n%s\n%s%s%s%s%s\n",
+				render.Infof("√ %s", tr.StatusMsg),
+				fmt.Sprintf("\nPassed cases:  %s", formatCompare(tr.CompareResult)),
+				fmt.Sprintf("\nInput:         %s", strings.ReplaceAll(tr.InputData, "\n", "↩ ")),
+				fmt.Sprintf("\nOutput:        %s", strings.Join(tr.CodeAnswer, "↩ ")),
+				stdout,
+				fmt.Sprintf("\nExpected:      %s", strings.Join(tr.ExpectedCodeAnswer, "↩ ")),
+			)
+		} else {
+			return fmt.Sprintf(
+				"\n%s\n%s%s%s%s%s\n",
+				render.Fatal(" × Wrong Answer"),
+				fmt.Sprintf("\nPassed cases:  %s", formatCompare(tr.CompareResult)),
+				fmt.Sprintf("\nInput:         %s", strings.ReplaceAll(tr.InputData, "\n", "↩ ")),
+				fmt.Sprintf("\nOutput:        %s", strings.Join(tr.CodeAnswer, "↩ ")),
+				stdout,
+				fmt.Sprintf("\nExpected:      %s", strings.Join(tr.ExpectedCodeAnswer, "↩ ")),
+			)
+		}
+	case MemoryLimitExceeded, TimeLimitExceeded, OutputLimitExceeded:
+		return render.Warnf("\n × %s\n", tr.StatusMsg)
+	case RuntimeError:
+		return fmt.Sprintf(
+			"\n%s\n%s\n\n%s\n",
+			render.Errorf(" × %s", tr.StatusMsg),
+			fmt.Sprintf("Passed cases:   %s", formatCompare(tr.CompareResult)),
+			render.Trace(tr.FullRuntimeError),
+		)
+	case CompileError:
+		return fmt.Sprintf(
+			"\n%s\n\n%s\n",
+			render.Errorf(" × %s", tr.StatusMsg),
+			render.Trace(tr.FullCompileError),
+		)
+	default:
+		return fmt.Sprintf("\n%s\n", render.Errorf(" × %s", tr.StatusMsg))
+	}
+}
+
+func (tr *TestCheckResult) Result() string {
+	return tr.State
+}
+
+func formatCompare(s string) string {
+	var sb strings.Builder
+	for _, c := range s {
+		if c == '1' {
+			sb.WriteString(render.Info("√"))
+		} else {
+			sb.WriteString(render.Error("×"))
+		}
+	}
+	return sb.String()
+}
+
+func (sr *SubmitCheckResult) Display() string {
+	stdout := ""
+	if len(sr.CodeOutput) > 1 {
+		stdout = "\nStdout:        " + strings.ReplaceAll(sr.StdOutput, "\n", "↩ ")
+	}
+	switch StatusCode(sr.StatusCode) {
 	case Accepted:
 		return fmt.Sprintf(
 			"\n%s\n%s%s%s\n",
-			render.Infof("√ %s", r.StatusMsg),
-			fmt.Sprintf("\nPassed cases:  %d/%d", r.TotalCorrect, r.TotalTestcases),
-			fmt.Sprintf("\nRuntime:       %s, better than %.0f%%", r.StatusRuntime, r.RuntimePercentile),
-			fmt.Sprintf("\nMemory:        %s, better than %.0f%%", r.StatusMemory, r.MemoryPercentile),
+			render.Infof("√ %s", sr.StatusMsg),
+			fmt.Sprintf("\nPassed cases:  %d/%d", sr.TotalCorrect, sr.TotalTestcases),
+			fmt.Sprintf("\nRuntime:       %s, better than %.0f%%", sr.StatusRuntime, sr.RuntimePercentile),
+			fmt.Sprintf("\nMemory:        %s, better than %.0f%%", sr.StatusMemory, sr.MemoryPercentile),
 		)
 	case WrongAnswer:
 		return fmt.Sprintf(
 			"\n%s\n%s%s%s%s%s\n",
 			render.Errorf(" × Wrong Answer"),
-			fmt.Sprintf("\nPassed cases:  %d/%d", r.TotalCorrect, r.TotalTestcases),
-			fmt.Sprintf("\nLast case:     %s", strings.ReplaceAll(r.LastTestcase, "\n", "↩ ")),
-			fmt.Sprintf("\nOutput:        %s", strings.ReplaceAll(r.CodeOutput, "\n", "↩ ")),
+			fmt.Sprintf("\nPassed cases:  %d/%d", sr.TotalCorrect, sr.TotalTestcases),
+			fmt.Sprintf("\nLast case:     %s", strings.ReplaceAll(sr.LastTestcase, "\n", "↩ ")),
+			fmt.Sprintf("\nOutput:        %s", strings.ReplaceAll(sr.CodeOutput, "\n", "↩ ")),
 			stdout,
-			fmt.Sprintf("\nExpected:      %s", strings.ReplaceAll(r.ExpectedOutput, "\n", "↩ ")),
+			fmt.Sprintf("\nExpected:      %s", strings.ReplaceAll(sr.ExpectedOutput, "\n", "↩ ")),
 		)
 	case MemoryLimitExceeded, TimeLimitExceeded, OutputLimitExceeded:
 		return fmt.Sprintf(
 			"\n%s\n%s%s\n",
-			render.Warnf("\n × %s\n", r.StatusMsg),
-			fmt.Sprintf("\nPassed cases:  %d/%d", r.TotalCorrect, r.TotalTestcases),
-			fmt.Sprintf("\nLast case:     %s", r.LastTestcase),
+			render.Warnf("\n × %s\n", sr.StatusMsg),
+			fmt.Sprintf("\nPassed cases:  %d/%d", sr.TotalCorrect, sr.TotalTestcases),
+			fmt.Sprintf("\nLast case:     %s", sr.LastTestcase),
 		)
 	case RuntimeError:
 		return fmt.Sprintf(
 			"\n%s\n%s\n\n%s\n",
-			render.Errorf(" × %s", r.StatusMsg),
-			fmt.Sprintf("Passed cases:   %s", formatCompare(r.CompareResult)),
-			render.Tracef(r.FullRuntimeError),
+			render.Errorf(" × %s", sr.StatusMsg),
+			fmt.Sprintf("Passed cases:   %s", formatCompare(sr.CompareResult)),
+			render.Tracef(sr.FullRuntimeError),
 		)
 	case CompileError:
 		return fmt.Sprintf(
 			"\n%s\n\n%s\n",
-			render.Errorf(" × %s", r.StatusMsg),
-			render.Tracef(r.FullCompileError),
+			render.Errorf(" × %s", sr.StatusMsg),
+			render.Tracef(sr.FullCompileError),
 		)
 	default:
-		return fmt.Sprintf("\n%s\n", render.Errorf(" × %s", r.StatusMsg))
+		return fmt.Sprintf("\n%s\n", render.Errorf(" × %s", sr.StatusMsg))
 	}
+}
+
+func (sr *SubmitCheckResult) Result() string {
+	return sr.State
 }

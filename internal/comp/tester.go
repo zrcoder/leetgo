@@ -12,6 +12,7 @@ import (
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/log"
+	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/render"
 
 	"github.com/zrcoder/leetgo/internal/local"
@@ -57,27 +58,39 @@ func (t *tester) Run() error {
 	}
 	cases := question.ParseDefaultTests()
 	casesStr := strings.Join(cases, "\n")
-	res, err := remote.Test(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang), casesStr)
+	id, err := remote.Test(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang), casesStr)
 	if err != nil {
 		log.Debug(err)
 		return err
 	}
+	res := &model.TestCheckResult{}
+	err = waitToCheck(id, question, res)
+	if err != nil {
+		return err
+	}
+
+	res.InputData = casesStr
+	fmt.Println(res.Display())
+	return nil
+}
+
+func waitToCheck(id string, question *model.Question, res model.RunResult) error {
+	var err error
 	for {
-		checkres, err := remote.CheckTest(res.InterpretId, question.Slug)
+		err = remote.CheckResult(id, question, res)
 		if err != nil {
 			log.Debug(err)
 			return err
 		}
-		log.Debug("state:", checkres.State, checkres.StatusCode)
-		if checkres.State == "FAILURE" {
-			log.Debug("test failed for id:", res.InterpretId)
-			data, _ := json.MarshalIndent(checkres, "", " . ")
+		state := res.Result()
+		log.Debug("result:", state)
+		if state == "FAILURE" {
+			log.Debug("test failed for id:", id)
+			data, _ := json.MarshalIndent(res, "", " . ")
 			log.Debug(string(data))
 			return errors.New("unknow internal error")
 		}
-		if checkres.State == "SUCCESS" {
-			checkres.InputData = casesStr
-			fmt.Println(checkres.Display())
+		if state == "SUCCESS" {
 			return nil
 		}
 		time.Sleep(time.Second)

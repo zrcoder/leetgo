@@ -86,37 +86,27 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	return question, err
 }
 
-func Test(question *model.Question, typedCode, codeLang string, inputCases string) (*model.TestResult, error) {
+func Test(question *model.Question, typedCode, codeLang string, inputCases string) (string, error) {
 	body := map[string]any{
 		"lang":        codeLang,
 		"question_id": question.QuestionID,
 		"typed_code":  typedCode,
 		"data_input":  inputCases,
 	}
-	refer := fmt.Sprintf("%s/problems/%s/",
-		config.Domain(),
-		question.Slug)
-	res := &model.TestResult{}
+	type resp struct {
+		InterpretId string `json:"interpret_id"`
+	}
+	res := &resp{}
 	err := requests.New(cfg).
 		Pathf("/problems/%s/interpret_solution/", question.Slug).
-		Header("Referer", refer).
+		Header("Referer", question.Referer).
 		BodyJSON(body).
 		ToJSON(&res).
 		Fetch(context.Background())
-	return res, err
-}
-
-func CheckTest(checkID, questionSlug string) (*model.TestCheckResult, error) {
-	res := &model.TestCheckResult{}
-	refer := fmt.Sprintf("%s/problems/%s/",
-		config.Domain(),
-		questionSlug)
-	err := requests.New(cfg).
-		Pathf("/submissions/detail/%s/check/", checkID).
-		Header("Referer", refer).
-		ToJSON(&res).
-		Fetch(context.Background())
-	return res, err
+	if err != nil {
+		return "", err
+	}
+	return res.InterpretId, err
 }
 
 func Submit(question *model.Question, typedCode, codeLang string) (string, error) {
@@ -126,13 +116,10 @@ func Submit(question *model.Question, typedCode, codeLang string) (string, error
 		"question_id":  question.QuestionID,
 		"typed_code":   typedCode,
 	}
-	refer := fmt.Sprintf("%s/problems/%s/",
-		config.Domain(),
-		question.Slug)
 	res := ""
 	err := requests.New(cfg).
 		Pathf("/problems/%s/submit/", question.Slug).
-		Header("Referer", refer).
+		Header("Referer", question.Referer).
 		BodyJSON(body).
 		ToString(&res).
 		Fetch(context.Background())
@@ -150,15 +137,10 @@ func Submit(question *model.Question, typedCode, codeLang string) (string, error
 	return strconv.Itoa(rsp.SubmissionID), nil
 }
 
-func CheckSubmit(submitId, questionSlug string) (*model.SubmitCheckResult, error) {
-	res := &model.SubmitCheckResult{}
-	refer := fmt.Sprintf("%s/problems/%s/",
-		config.Domain(),
-		questionSlug)
-	err := requests.New(cfg).
-		Pathf("/submissions/detail/%s/check/", submitId).
-		Header("Referer", refer).
+func CheckResult(id string, question *model.Question, res model.RunResult) error {
+	return requests.New(cfg).
+		Pathf("/submissions/detail/%s/check/", id).
+		Header("Referer", question.Referer).
 		ToJSON(&res).
 		Fetch(context.Background())
-	return res, err
 }

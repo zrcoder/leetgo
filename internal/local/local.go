@@ -49,15 +49,20 @@ func Write(question *model.Question) error {
 	if err = makeDir(cfg, question.ID); err != nil {
 		return err
 	}
-	if err = writeMeta(question, cfg); err != nil {
-		return err
-	}
 	if err = writeMarkdown(question, cfg); err != nil {
 		return err
 	}
 	if err = writeCodeFile(question, cfg); err != nil {
 		return err
 	}
+
+	question.MdContent = ""
+	question.Stats = ""
+	question.CodeDefinition = ""
+	if err = writeMeta(question, cfg); err != nil {
+		return err
+	}
+
 	if !config.IsGolang(cfg) {
 		return nil
 	}
