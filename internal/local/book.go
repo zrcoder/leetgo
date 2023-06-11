@@ -32,6 +32,7 @@ func GetMetaList() ([]*tmodel.DocInfo, error) {
 	docs := make([]*tmodel.DocInfo, len(ids))
 
 	for i, id := range ids {
+		id := id // for doc.Getter below, captrue current id
 		doc := &tmodel.DocInfo{}
 		question, err := GetQuestion(cfg, id)
 		if err != nil {
