@@ -110,7 +110,7 @@ func GetQuestion(cfg *config.Config, id string) (*model.Question, error) {
 }
 
 func writeMeta(question *model.Question, cfg *config.Config) error {
-	data, _ := json.MarshalIndent(question.Meta, "", "  ")
+	data, _ := json.MarshalIndent(question, "", "  ")
 	return os.WriteFile(getMetaFile(cfg, question.ID), data, 0640)
 }
 
@@ -130,10 +130,7 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.Slug, "-", "_"))
 		buf.WriteString(line)
 	}
-	codeLang := cfg.CodeLang
-	if codeLang == "go" {
-		codeLang = "golang"
-	}
+	codeLang := config.LeetcodeLang(cfg.CodeLang)
 	buf.WriteString(codeStartFlag)
 	for _, v := range codes {
 		if v.Value == codeLang {
@@ -165,7 +162,7 @@ func writeGoTestFile(question *model.Question, cfg *config.Config) error {
 }
 
 func genGoModFile(question *model.Question, cfg *config.Config) error {
-	return exec.Run(GetDir(cfg, question.ID), "go", "mod", "init", "ttt")
+	return exec.Run(GetDir(cfg, question.ID), "go", "mod", "init", cfg.Language+"-"+question.Slug)
 }
 
 func makeDir(cfg *config.Config, id string) error {

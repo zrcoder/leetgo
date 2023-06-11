@@ -59,10 +59,7 @@ func GetMetaList() ([]*tmodel.DocInfo, error) {
 
 			buf := bytes.NewBuffer(nil)
 			buf.WriteString("\n\n## My Solution:\n\n")
-			codeLang := cfg.CodeLang
-			if codeLang == "golang" {
-				codeLang = "go"
-			}
+			codeLang := config.DisplayLang(cfg.CodeLang)
 			buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
 			buf.Write(codeData)
 			buf.WriteString("\n```\n")

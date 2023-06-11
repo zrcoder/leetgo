@@ -83,9 +83,6 @@ func merge(pre, cur *Config) *Config {
 	if cur.Language != "" {
 		pre.Language = cur.Language
 	}
-	if pre.CodeLang == "golang" {
-		pre.CodeLang = "go"
-	}
 	if cur.Editor != "" {
 		pre.Editor = cur.Editor
 	}
@@ -130,16 +127,25 @@ func Domain() string {
 	return enDomain
 }
 
-func IsCN(cfg *Config) bool {
-	return cfg.Language == cnLanguage
-}
-
 func GetCodeFileExt(codeLang string) string {
 	return codeLangExtensionDic[codeLang]
 }
 
 func IsGolang(cfg *Config) bool {
 	return cfg.CodeLang == "go" || cfg.CodeLang == "golang"
+}
+
+func LeetcodeLang(lang string) string {
+	if lang == "go" {
+		return "golang"
+	}
+	return lang
+}
+func DisplayLang(lang string) string {
+	if lang == "golang" {
+		return "go"
+	}
+	return lang
 }
 
 func SrpportedLang(lang string) bool {

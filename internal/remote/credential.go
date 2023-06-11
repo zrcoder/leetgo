@@ -5,36 +5,68 @@ import (
 	"strings"
 
 	"github.com/j178/kooky"
+	_ "github.com/j178/kooky/browser/chrome"
+	_ "github.com/j178/kooky/browser/edge"
+	_ "github.com/j178/kooky/browser/firefox"
+	_ "github.com/j178/kooky/browser/safari"
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
 )
 
-const (
-	TokenKey   = "csrftoken"
-	SessionKey = "LEETCODE_SESSION"
-)
-
-func GetCredentials() (string, string, error) {
-	domain := strings.TrimPrefix(config.Domain(), "https://")
-	return getCredentialsFromBrowser(domain)
+var supporttedBrowsers = []string{
+	"chrome",
+	"edge",
+	"firefox",
+	"safari",
 }
 
-func getCredentialsFromBrowser(domain string) (string, string, error) {
-	log.Debug("get credentials from browser")
-	tokenCookies := kooky.ReadCookies(
-		kooky.Valid,
-		kooky.DomainContains(domain),
-		kooky.Name(TokenKey),
-	)
-	sessionCookies := kooky.ReadCookies(
-		kooky.Valid,
-		kooky.DomainContains(domain),
-		kooky.Name(SessionKey),
-	)
-	if len(sessionCookies) == 0 || len(tokenCookies) == 0 {
-		err := errors.New("failed to get credentials")
-		log.Debug(err)
-		return "", "", err
+const (
+	tokenKey   = "csrftoken"
+	sessionKey = "LEETCODE_SESSION"
+)
+
+func getCredentials() (string, string, error) {
+	domain := strings.TrimPrefix(config.Domain(), "https://")
+	return getCredentialsFromBrowsers(domain)
+}
+
+func getCredentialsFromBrowsers(domain string) (string, string, error) {
+	log.Debug("search credentials from browsers")
+	filters := []kooky.Filter{
+		kooky.DomainHasSuffix(domain),
+		kooky.FilterFunc(
+			func(cookie *kooky.Cookie) bool {
+				return kooky.Name(sessionKey).Filter(cookie) ||
+					kooky.Name(tokenKey).Filter(cookie)
+			},
+		),
 	}
-	return tokenCookies[0].Value, sessionCookies[0].Value, nil
+	for _, store := range kooky.FindCookieStores(supporttedBrowsers...) {
+		log.Debug("search:", store.Browser(), "file", store.FilePath())
+		cookies, err := store.ReadCookies(filters...)
+		if err != nil {
+			log.Debug("failed to read cookies:", err)
+			continue
+		}
+		if len(cookies) < 2 {
+			log.Debug("no cookie found for", store.Browser())
+			continue
+		}
+		var session, csrfToken string
+		for _, cookie := range cookies {
+			if cookie.Name == sessionKey {
+				session = cookie.Value
+			}
+			if cookie.Name == tokenKey {
+				csrfToken = cookie.Value
+			}
+		}
+		if session == "" || csrfToken == "" {
+			log.Debug("no cookie found for", store.Browser(), ":", domain)
+			continue
+		}
+		log.Debug("read credentials succeed for", store.Browser(), ":", domain)
+		return csrfToken, session, nil
+	}
+	return "", "", errors.New("no credentials found from browsers")
 }

@@ -79,7 +79,7 @@ func configAction(context *cli.Context) error {
 		buf.WriteString("|flag|current value|description|\n")
 		buf.WriteString("| --- | --- | --- |\n")
 		const rowTmp = "|-%s, --%s|%s|%v|\n"
-		buf.WriteString(fmt.Sprintf(rowTmp, langShortKey, langKey, render.Info(cfg.Language), langUsage))
+		buf.WriteString(fmt.Sprintf(rowTmp, langShortKey, langKey, render.Info(config.DisplayLang(cfg.Language)), langUsage))
 		buf.WriteString(fmt.Sprintf(rowTmp, codeLangShortKey, codeLangKey, render.Info(cfg.CodeLang), codeLangUsage))
 		buf.WriteString(fmt.Sprintf(rowTmp, editorShortKey, editorKey, render.Info(cfg.Editor), editorUsage))
 		fmt.Println(render.MarkDown(buf.String()))

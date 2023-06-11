@@ -20,6 +20,7 @@ func main() {
 			cmds.View,
 			cmds.Edit,
 			cmds.Test,
+			cmds.Submit,
 			cmds.Book,
 		},
 	}

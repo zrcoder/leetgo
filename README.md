@@ -11,4 +11,4 @@ Cli APP for Leetcode.
 ## TODO
 
 - ~~improve command: `book`~~
-- add sub commands: `test`, `submit`
+- ~~add sub commands: `test`, `submit`~~

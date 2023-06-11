@@ -2,16 +2,30 @@ package remote
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"strings"
+	"strconv"
 
 	"github.com/carlmjohnson/requests"
 
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
-	"github.com/zrcoder/leetgo/internal/mod"
 	"github.com/zrcoder/leetgo/internal/model"
 )
+
+// common config for request client
+func cfg(rb *requests.Builder) {
+	token, session, err := getCredentials()
+	if err != nil {
+		log.Debug(err)
+	}
+	rb.BaseURL(config.Domain()).
+		ContentType("application/json").
+		Cookie("LEETCODE_SESSION", session).
+		Cookie("csrftoken", token).
+		Header("x-csrftoken", token)
+
+}
 
 func GetList() (*model.List, error) {
 	res := &model.List{}
@@ -53,8 +67,6 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	res := &model.GetQuestionResponse{}
 	err := requests.New(cfg).
 		Path("/graphql").
-		ContentType("application/json").
-		Header("Cache-Control", "no-cache").
 		Header("Referer", referer).
 		BodyJSON(body).
 		ToJSON(res).
@@ -74,38 +86,79 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	return question, err
 }
 
-func Test(question *model.Question, typedCode, codeLang string, tests []string) (*model.InterpretSolutionResult, error) {
-	res := &model.InterpretSolutionResult{}
+func Test(question *model.Question, typedCode, codeLang string, inputCases string) (*model.TestResult, error) {
+	body := map[string]any{
+		"lang":        codeLang,
+		"question_id": question.QuestionID,
+		"typed_code":  typedCode,
+		"data_input":  inputCases,
+	}
+	refer := fmt.Sprintf("%s/problems/%s/",
+		config.Domain(),
+		question.Slug)
+	res := &model.TestResult{}
 	err := requests.New(cfg).
-		Pathf("/problems/%s/interpret_solution", question.Slug).
-		BodyJSON(map[string]any{
-			"lang":        codeLang,
-			"question_id": question.QuestionID,
-			"typed_code":  typedCode,
-			"data_input":  strings.Join(tests, "\n"),
-		}).
-		ToJSON(res).
+		Pathf("/problems/%s/interpret_solution/", question.Slug).
+		Header("Referer", refer).
+		BodyJSON(body).
+		ToJSON(&res).
 		Fetch(context.Background())
 	return res, err
 }
 
-func Check(submitId string) (string, error) {
-	path := fmt.Sprintf("%s/submissions/detail/%s/check", config.Domain(), submitId)
-	res := ""
-	err := requests.URL(path).ToString(&res).Fetch(context.Background())
+func CheckTest(checkID, questionSlug string) (*model.TestCheckResult, error) {
+	res := &model.TestCheckResult{}
+	refer := fmt.Sprintf("%s/problems/%s/",
+		config.Domain(),
+		questionSlug)
+	err := requests.New(cfg).
+		Pathf("/submissions/detail/%s/check/", checkID).
+		Header("Referer", refer).
+		ToJSON(&res).
+		Fetch(context.Background())
 	return res, err
 }
 
-// common config for request client
-func cfg(rb *requests.Builder) {
-	rb.BaseURL(config.Domain())
-
-	if mod.IsDebug() {
-		u, err := rb.URL()
-		if err == nil {
-			log.Debug("request url:", u.String())
-		} else {
-			log.Debug(err)
-		}
+func Submit(question *model.Question, typedCode, codeLang string) (string, error) {
+	body := map[string]any{
+		"lang":         codeLang,
+		"questionSlug": question.Slug,
+		"question_id":  question.QuestionID,
+		"typed_code":   typedCode,
 	}
+	refer := fmt.Sprintf("%s/problems/%s/",
+		config.Domain(),
+		question.Slug)
+	res := ""
+	err := requests.New(cfg).
+		Pathf("/problems/%s/submit/", question.Slug).
+		Header("Referer", refer).
+		BodyJSON(body).
+		ToString(&res).
+		Fetch(context.Background())
+	if err != nil {
+		return "", err
+	}
+	type resp struct {
+		SubmissionID int `json:"submission_id"`
+	}
+	rsp := &resp{}
+	err = json.Unmarshal([]byte(res), rsp)
+	if err != nil {
+		return "", err
+	}
+	return strconv.Itoa(rsp.SubmissionID), nil
+}
+
+func CheckSubmit(submitId, questionSlug string) (*model.SubmitCheckResult, error) {
+	res := &model.SubmitCheckResult{}
+	refer := fmt.Sprintf("%s/problems/%s/",
+		config.Domain(),
+		questionSlug)
+	err := requests.New(cfg).
+		Pathf("/submissions/detail/%s/check/", submitId).
+		Header("Referer", refer).
+		ToJSON(&res).
+		Fetch(context.Background())
+	return res, err
 }
