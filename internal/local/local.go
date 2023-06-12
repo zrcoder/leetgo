@@ -12,9 +12,9 @@ import (
 	"github.com/cweill/gotests"
 
 	"github.com/zrcoder/leetgo/internal/config"
-	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
+	"github.com/zrcoder/leetgo/utils/exec"
 )
 
 const (

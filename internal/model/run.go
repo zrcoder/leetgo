@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/render"
 )
 
 type RunResult interface {

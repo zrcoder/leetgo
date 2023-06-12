@@ -1,18 +1,23 @@
 package log
 
 import (
-	"github.com/charmbracelet/log"
+	"os"
 
-	"github.com/zrcoder/leetgo/internal/mod"
+	"github.com/charmbracelet/log"
 )
 
+var isDebug = false
+
 func init() {
-	log.Default().SetReportCaller(true)
-	log.SetLevel(log.DebugLevel)
+	isDebug = os.Getenv("LG_DEBUG") == "1"
+	if isDebug {
+		log.SetReportCaller(true)
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 func Debug(x ...any) {
-	if !mod.IsDebug() {
+	if !isDebug {
 		return
 	}
 	log.Helper()

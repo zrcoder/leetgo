@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/cmds"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/render"
 )
 
 func main() {

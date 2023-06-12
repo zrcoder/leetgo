@@ -8,7 +8,7 @@ import (
 
 	"github.com/zrcoder/leetgo/internal/comp"
 	"github.com/zrcoder/leetgo/internal/config"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/render"
 )
 
 const (

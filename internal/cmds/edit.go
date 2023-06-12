@@ -7,8 +7,8 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/zrcoder/leetgo/internal/config"
-	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/local"
+	"github.com/zrcoder/leetgo/utils/exec"
 )
 
 var Edit = &cli.Command{

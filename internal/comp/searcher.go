@@ -7,7 +7,7 @@ import (
 	"github.com/briandowns/spinner"
 
 	"github.com/zrcoder/leetgo/internal/mgr"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/render"
 )
 
 func NewSearcher(key string) Component {

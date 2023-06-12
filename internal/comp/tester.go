@@ -9,10 +9,10 @@ import (
 	"github.com/briandowns/spinner"
 
 	"github.com/zrcoder/leetgo/internal/config"
-	"github.com/zrcoder/leetgo/internal/exec"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/exec"
+	"github.com/zrcoder/leetgo/utils/render"
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/remote"

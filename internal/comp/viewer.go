@@ -7,7 +7,7 @@ import (
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/mgr"
-	"github.com/zrcoder/leetgo/internal/render"
+	"github.com/zrcoder/leetgo/utils/render"
 )
 
 func NewViewer(id string) Component {
