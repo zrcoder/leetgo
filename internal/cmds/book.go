@@ -16,7 +16,7 @@ const (
 
 var Book = &cli.Command{
 	Name:      "book",
-	Usage:     "view all questiongs and codes in the local project as a book",
+	Usage:     "view all questions you picked as a book",
 	UsageText: "leetgo book",
 	Flags:     []cli.Flag{sortbyFlag, reverseFlag},
 	Action:    bookAction,

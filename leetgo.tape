@@ -11,5 +11,17 @@ Sleep 3s
 Type "leetgo view 18" Sleep 500ms Enter
 Sleep 5s
 
-Type "leetgo book" Sleep 500ms Enter
+Type "leetgo code 18" Sleep 500ms Enter
+Sleep 5s
+
+Type ":wqa" Sleep 500ms Enter
 Sleep 3s
+
+Type "leetgo test 18" Sleep 500ms Enter
+Sleep 8s
+
+Type "leetgo submit 18" Sleep 500ms Enter
+Sleep 8s
+
+Type "leetgo book" Sleep 500ms Enter
+Sleep 8s
