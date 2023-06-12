@@ -15,16 +15,12 @@ import (
 
 // common config for request client
 func cfg(rb *requests.Builder) {
-	token, session, err := getCredentials()
-	if err != nil {
-		log.Debug(err)
-	}
+	token, session, _ := getCredentials()
 	rb.BaseURL(config.Domain()).
 		ContentType("application/json").
 		Cookie("LEETCODE_SESSION", session).
 		Cookie("csrftoken", token).
 		Header("x-csrftoken", token)
-
 }
 
 func GetList() (*model.List, error) {
@@ -33,7 +29,9 @@ func GetList() (*model.List, error) {
 		Path("/api/problems/all").
 		ToJSON(res).
 		Fetch(context.Background())
-	log.Debug(err)
+	if err != nil {
+		log.Debug(err)
+	}
 	return res, err
 }
 
@@ -85,6 +83,47 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	return question, err
 }
 
+func GetToday() (res model.Today, err error) {
+	isEn := config.IsDefaultLang()
+	queryTmp := `
+    query questionOfToday {
+        %s {
+            question {
+				difficulty
+				frontendQuestionId: questionFrontendId
+				paidOnly: isPaidOnly
+				title
+				titleSlug
+            }
+        }
+    }`
+	queryKey := "todayRecord"
+	if isEn {
+		queryKey = "activeDailyCodingChallengeQuestion"
+	}
+
+	body := map[string]any{
+		"query":         fmt.Sprintf(queryTmp, queryKey),
+		"operationName": "questionOfToday",
+	}
+	referer := fmt.Sprintf("%s/problemset/all/", config.Domain())
+	if isEn {
+		res = &model.TodayEN{}
+	} else {
+		res = &model.TodayCN{}
+	}
+	err = requests.New(cfg).
+		Path("/graphql").
+		Header("Referer", referer).
+		BodyJSON(body).
+		ToJSON(res).
+		Fetch(context.Background())
+	if err != nil {
+		log.Debug(err)
+	}
+	return
+}
+
 func Test(question *model.Question, typedCode, codeLang string) (string, error) {
 	body := map[string]any{
 		"lang":        codeLang,
@@ -103,7 +142,7 @@ func Test(question *model.Question, typedCode, codeLang string) (string, error) 
 		ToJSON(&res).
 		Fetch(context.Background())
 	if err != nil {
-		return "", err
+		log.Debug(err)
 	}
 	return res.InterpretId, err
 }
@@ -123,6 +162,7 @@ func Submit(question *model.Question, typedCode, codeLang string) (string, error
 		ToString(&res).
 		Fetch(context.Background())
 	if err != nil {
+		log.Debug(err)
 		return "", err
 	}
 	type resp struct {
@@ -131,15 +171,20 @@ func Submit(question *model.Question, typedCode, codeLang string) (string, error
 	rsp := &resp{}
 	err = json.Unmarshal([]byte(res), rsp)
 	if err != nil {
+		log.Debug(err)
 		return "", err
 	}
 	return strconv.Itoa(rsp.SubmissionID), nil
 }
 
 func CheckResult(id string, question *model.Question, res model.RunResult) error {
-	return requests.New(cfg).
+	err := requests.New(cfg).
 		Pathf("/submissions/detail/%s/check/", id).
 		Header("Referer", question.Referer).
 		ToJSON(&res).
 		Fetch(context.Background())
+	if err != nil {
+		log.Debug(err)
+	}
+	return err
 }

@@ -35,6 +35,8 @@ func (t *tester) Run() error {
 	if err != nil {
 		return err
 	}
+
+	t.id = regualarID(t.id)
 	// only surpport "go" to run test locally now
 	if config.IsGolang(cfg) {
 		fmt.Println("local testing...")
@@ -63,7 +65,6 @@ func (t *tester) remoteTest(cfg *config.Config) error {
 	}
 	id, err := remote.Test(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang))
 	if err != nil {
-		log.Debug(err)
 		return err
 	}
 	res := &model.TestCheckResult{}
@@ -82,7 +83,6 @@ func waitToCheck(id string, question *model.Question, res model.RunResult) error
 	for {
 		err = remote.CheckResult(id, question, res)
 		if err != nil {
-			log.Debug(err)
 			return err
 		}
 		state := res.Result()

@@ -25,7 +25,7 @@ type Difficulty struct {
 	Level int `json:"level"`
 }
 
-func (s *Stat) GetFrontendQuestionID() string {
+func (s *Stat) CalFrontendID() string {
 	if val, ok := s.FrontendQuestionID.(string); ok {
 		return val
 	}
@@ -39,4 +39,15 @@ func (d *Difficulty) String() string {
 		3: "Hard",
 	}
 	return dic[d.Level]
+}
+
+func StrToDifficulty(s string) Difficulty {
+	dic := map[string]int{
+		"Easy":   1,
+		"Medium": 2,
+		"Hard":   3,
+	}
+	return Difficulty{
+		Level: dic[s],
+	}
 }

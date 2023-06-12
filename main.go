@@ -18,7 +18,7 @@ func main() {
 			cmds.Config,
 			cmds.Search,
 			cmds.View,
-			cmds.Edit,
+			cmds.Code,
 			cmds.Test,
 			cmds.Submit,
 			cmds.Book,

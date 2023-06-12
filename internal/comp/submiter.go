@@ -34,6 +34,8 @@ func (t *submiter) Run() error {
 	t.spinner.Start()
 	defer t.spinner.Stop()
 
+	t.id = regualarID(t.id)
+
 	typedCode, err := local.GetTypedCode(cfg, t.id)
 	if err != nil {
 		return err
@@ -44,7 +46,6 @@ func (t *submiter) Run() error {
 	}
 	id, err := remote.Submit(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang))
 	if err != nil {
-		log.Debug(err)
 		return err
 	}
 	log.Debug("submit id:", id)

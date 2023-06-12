@@ -123,6 +123,14 @@ func Domain() string {
 	return enDomain
 }
 
+func IsDefaultLang() bool {
+	cfg, err := Get()
+	if err != nil {
+		return true
+	}
+	return cfg.Language == DefaultLanguage
+}
+
 func GetCodeFileExt(codeLang string) string {
 	return codeLangExtensionDic[codeLang]
 }
