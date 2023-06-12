@@ -44,6 +44,15 @@ var (
 		"neovim": "nvim",
 		"nvim":   "nvim",
 		"vim":    "vim",
+		"emacs":  "emacs",
+		"vscode": "code",
+	}
+	editorCmdOption = map[string][]string{
+		"neovim": {"-p"},
+		"nvim":   {"-p"},
+		"vim":    {"-p"},
+		"vscode": nil,
+		"emacs":  nil,
 	}
 )
 
@@ -165,6 +174,6 @@ func SupportedEditor(editor string) bool {
 	_, ok := editorCmdDic[editor]
 	return ok
 }
-func GetEditorCmd(editor string) string {
-	return editorCmdDic[editor]
+func GetEditorCmdOps(editor string) (string, []string) {
+	return editorCmdDic[editor], editorCmdOption[editor]
 }

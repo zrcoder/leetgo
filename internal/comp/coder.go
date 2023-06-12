@@ -29,8 +29,8 @@ func (c *coder) Run() error {
 	}
 
 	codeFile := local.GetCodeFile(cfg, c.id)
-	cmd := config.GetEditorCmd(cfg.Editor)
-	args := []string{"-p", codeFile}
+	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
+	args := append(ops, codeFile)
 	if config.IsGolang(cfg) {
 		args = append(args, local.GetGoTestFile(cfg, c.id))
 	}
