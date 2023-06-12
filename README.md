@@ -18,6 +18,12 @@ COMMANDS:
    book     view all questions you picked as a book
 ```
 
+## Install
+
+```shell
+go install github.com/zrcoder/leetgo@latest
+```
+
 > Only tested for Golang until now.
 
 ## How to auth?
