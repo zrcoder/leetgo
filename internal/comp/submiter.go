@@ -16,7 +16,7 @@ import (
 func NewSubmiter(id string) Component {
 	return &submiter{
 		id:      id,
-		spinner: newSpinner("Remote testing"),
+		spinner: newSpinner("Submitting"),
 	}
 }
 

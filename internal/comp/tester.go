@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -62,9 +61,7 @@ func (t *tester) remoteTest(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	cases := question.ParseDefaultTests()
-	casesStr := strings.Join(cases, "\n")
-	id, err := remote.Test(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang), casesStr)
+	id, err := remote.Test(question, string(typedCode), config.LeetcodeLang(cfg.CodeLang))
 	if err != nil {
 		log.Debug(err)
 		return err
@@ -75,7 +72,7 @@ func (t *tester) remoteTest(cfg *config.Config) error {
 		return err
 	}
 
-	res.InputData = casesStr
+	res.InputData = question.SampleTestCase
 	fmt.Println(res.Display())
 	return nil
 }

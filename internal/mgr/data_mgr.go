@@ -11,18 +11,18 @@ import (
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func Query(id string) (*model.Question, error) {
+func Query(frontendID string) (*model.Question, error) {
 	list, err := remote.GetList()
 	if err != nil {
 		return nil, err
 	}
 	for _, sp := range list.StatStatusPairs {
-		sp.Stat.CalculatedID = sp.Stat.GetFrontendQuestionID()
-		if sp.Stat.CalculatedID != id {
+		sp.Stat.FrontendID = sp.Stat.GetFrontendQuestionID()
+		if sp.Stat.FrontendID != frontendID {
 			continue
 		}
 		if sp.PaidOnly {
-			err := fmt.Errorf("[%s. %s] is locked", sp.Stat.CalculatedID, sp.Stat.QuestionTitle)
+			err := fmt.Errorf("[%s. %s] is locked", sp.Stat.FrontendID, sp.Stat.QuestionTitle)
 			log.Debug(err)
 			return nil, err
 		}
@@ -40,10 +40,10 @@ func Search(keyWords string) ([]model.StatStatusPair, error) {
 	lower := strings.ToLower(keyWords)
 	var res []model.StatStatusPair
 	for _, sp := range list.StatStatusPairs {
-		sp.Stat.CalculatedID = sp.Stat.GetFrontendQuestionID()
+		sp.Stat.FrontendID = sp.Stat.GetFrontendQuestionID()
 		oriLower := strings.ToLower(sp.Stat.QuestionTitle)
 		for _, sep := range []string{" ", ". ", "."} {
-			title := sp.Stat.CalculatedID + sep + oriLower
+			title := sp.Stat.FrontendID + sep + oriLower
 			if strings.Contains(title, lower) {
 				res = append(res, sp)
 				break
@@ -56,7 +56,7 @@ func Search(keyWords string) ([]model.StatStatusPair, error) {
 	}
 
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].Stat.CalculatedID < res[j].Stat.CalculatedID
+		return res[i].Stat.FrontendID < res[j].Stat.FrontendID
 	})
 	return res, nil
 }

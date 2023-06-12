@@ -48,7 +48,6 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 		codeDefinition
 		sampleTestCase
 		enableRunCode
-		metaData
 		translatedContent
 	  }
 	}`
@@ -77,7 +76,7 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	}
 
 	question := res.Data.Question
-	question.ID = sp.Stat.CalculatedID
+	question.FrontendID = sp.Stat.FrontendID
 	question.Title = sp.Stat.QuestionTitle
 	question.Slug = sp.Stat.QuestionTitleSlug
 	question.Referer = referer
@@ -86,12 +85,12 @@ func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
 	return question, err
 }
 
-func Test(question *model.Question, typedCode, codeLang string, inputCases string) (string, error) {
+func Test(question *model.Question, typedCode, codeLang string) (string, error) {
 	body := map[string]any{
 		"lang":        codeLang,
 		"question_id": question.QuestionID,
 		"typed_code":  typedCode,
-		"data_input":  inputCases,
+		"data_input":  question.SampleTestCase,
 	}
 	type resp struct {
 		InterpretId string `json:"interpret_id"`

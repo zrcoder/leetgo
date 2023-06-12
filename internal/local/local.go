@@ -43,12 +43,12 @@ func Exist(id string) bool {
 }
 
 func Write(question *model.Question) error {
-	log.Debug("begin to write question in local, id:", question.ID)
+	log.Debug("begin to write question in local, id:", question.FrontendID)
 	cfg, err := config.Get()
 	if err != nil {
 		return err
 	}
-	if err = makeDir(cfg, question.ID); err != nil {
+	if err = makeDir(cfg, question.FrontendID); err != nil {
 		return err
 	}
 	if err = writeMarkdown(question, cfg); err != nil {
@@ -133,11 +133,11 @@ func GetQuestion(cfg *config.Config, id string) (*model.Question, error) {
 
 func writeMeta(question *model.Question, cfg *config.Config) error {
 	data, _ := json.MarshalIndent(question, "", "  ")
-	return os.WriteFile(getMetaFile(cfg, question.ID), data, 0640)
+	return os.WriteFile(getMetaFile(cfg, question.FrontendID), data, 0640)
 }
 
 func writeMarkdown(question *model.Question, cfg *config.Config) error {
-	return os.WriteFile(GetMarkdownFile(cfg, question.ID), []byte(question.MdContent), 0640)
+	return os.WriteFile(GetMarkdownFile(cfg, question.FrontendID), []byte(question.MdContent), 0640)
 }
 
 func writeCodeFile(question *model.Question, cfg *config.Config) error {
@@ -145,7 +145,7 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	id := question.ID
+	id := question.FrontendID
 	codeFile := GetCodeFile(cfg, id)
 	buf := bytes.NewBuffer(nil)
 	if config.IsGolang(cfg) {
@@ -170,8 +170,8 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 }
 
 func writeGoTestFile(question *model.Question, cfg *config.Config) error {
-	codePath := GetCodeFile(cfg, question.ID)
-	testPath := GetGoTestFile(cfg, question.ID)
+	codePath := GetCodeFile(cfg, question.FrontendID)
+	testPath := GetGoTestFile(cfg, question.FrontendID)
 	_ = os.Remove(testPath) // need remove the test file when update
 	tests, err := gotests.GenerateTests(codePath, nil)
 	if err != nil {
@@ -188,7 +188,7 @@ func writeGoTestFile(question *model.Question, cfg *config.Config) error {
 }
 
 func genGoModFile(question *model.Question, cfg *config.Config) error {
-	return exec.Run(GetDir(cfg, question.ID), "go", "mod", "init", cfg.Language+"-"+question.Slug)
+	return exec.Run(GetDir(cfg, question.FrontendID), "go", "mod", "init", cfg.Language+"-"+question.Slug)
 }
 
 func makeDir(cfg *config.Config, id string) error {

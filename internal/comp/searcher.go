@@ -41,9 +41,9 @@ func (s *searcher) Run() error {
 			locked = "🔒"
 			lockCnt++
 		}
-		row := fmt.Sprintf(rowTmp, sp.Stat.CalculatedID, sp.Stat.QuestionTitle, sp.Difficulty.String(), locked)
+		row := fmt.Sprintf(rowTmp, sp.Stat.FrontendID, sp.Stat.QuestionTitle, sp.Difficulty.String(), locked)
 		buf.WriteString(row)
-		lastQuestionID = sp.Stat.CalculatedID
+		lastQuestionID = sp.Stat.FrontendID
 	}
 	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(sps), lockCnt))
 	buf.WriteString(fmt.Sprintf("> view detail? type like: `leetgo view %s`\n", lastQuestionID))
