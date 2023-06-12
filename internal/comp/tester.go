@@ -43,11 +43,17 @@ func (t *tester) Run() error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(render.Info("local test succeed"))
+		fmt.Println(render.Info("local test succeed\n"))
 	}
-	t.spinner.Start() // remote testing...
-	defer t.spinner.Stop()
 
+	t.spinner.Start() // remote testing...
+	err = t.remoteTest(cfg)
+	t.spinner.Stop()
+
+	return err
+}
+
+func (t *tester) remoteTest(cfg *config.Config) error {
 	typedCode, err := local.GetTypedCode(cfg, t.id)
 	if err != nil {
 		return err

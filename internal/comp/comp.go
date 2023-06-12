@@ -19,7 +19,7 @@ func newSpinner(msg string) *spinner.Spinner {
 		"▰▰▱",
 		"▰▱▱",
 		"▱▱▱",
-	}, time.Second/7)
+	}, time.Second/7, spinner.WithHiddenCursor(true))
 	res.Prefix = msg + " "
 	return res
 }

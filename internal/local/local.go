@@ -22,6 +22,8 @@ const (
 	markdownFile = "question.md"
 	metaFile     = "question.json"
 
+	noteStartFlag = "/* @note start\n"
+	noteEndFlag   = "@note end */\n"
 	codeStartFlag = "// @submit start\n"
 	codeEndFlag   = "// @submit end\n"
 )
@@ -85,17 +87,32 @@ func GetMarkdown(id string) ([]byte, error) {
 
 func GetTypedCode(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed code in local, id:", id)
+	return getFromCodeFile(cfg, id, codeStartFlag, codeEndFlag)
+}
+func getNotes(cfg *config.Config, id string) ([]byte, error) {
+	log.Debug("begin to read typed notes in local, id:", id)
+	data, err := getFromCodeFile(cfg, id, noteStartFlag, noteEndFlag)
+	if err != nil {
+		return nil, err
+	}
+	if bytes.Contains(data, []byte(codeStartFlag)) {
+		return nil, nil
+	}
+	return data, nil
+}
+
+func getFromCodeFile(cfg *config.Config, id, start, end string) ([]byte, error) {
 	path := GetCodeFile(cfg, id)
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	i := bytes.Index(content, []byte(codeStartFlag))
+	i := bytes.Index(content, []byte(start))
 	if i == -1 {
 		return content, nil
 	}
-	content = content[i+len(codeStartFlag):]
-	i = bytes.LastIndex(content, []byte(codeEndFlag))
+	content = content[i+len(start):]
+	i = bytes.LastIndex(content, []byte(end))
 	if i == -1 {
 		return content, nil
 	}
@@ -135,6 +152,10 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.Slug, "-", "_"))
 		buf.WriteString(line)
 	}
+	buf.WriteString(noteStartFlag)
+	buf.WriteString("\n")
+	buf.WriteString(noteEndFlag)
+	buf.WriteString("\n")
 	codeLang := config.LeetcodeLang(cfg.CodeLang)
 	buf.WriteString(codeStartFlag)
 	for _, v := range codes {

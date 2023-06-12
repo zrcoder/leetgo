@@ -55,10 +55,19 @@ func GetMetaList() ([]*tmodel.DocInfo, error) {
 			if err != nil {
 				return nil, err
 			}
+			noteDate, err := getNotes(cfg, id)
+			if err != nil {
+				return nil, err
+			}
+			noteDate = bytes.TrimSpace(noteDate)
 			mdData = bytes.TrimSpace(mdData)
 
 			buf := bytes.NewBuffer(nil)
 			buf.WriteString("\n\n## My Solution:\n\n")
+			if len(noteDate) > 0 {
+				buf.Write(noteDate)
+				buf.WriteString("\n\n")
+			}
 			codeLang := config.DisplayLang(cfg.CodeLang)
 			buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
 			buf.Write(codeData)

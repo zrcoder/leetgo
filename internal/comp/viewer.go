@@ -21,12 +21,17 @@ type viewer struct {
 }
 
 func (c *viewer) Run() error {
+	printHint := func() {
+		typeHint := fmt.Sprintf("Type `leetgo edit %s` to solve it", c.id)
+		fmt.Println(render.MarkDown(typeHint))
+	}
 	if local.Exist(c.id) {
 		content, err := local.GetMarkdown(c.id)
 		if err != nil {
 			return err
 		}
 		fmt.Print(render.MarkDown(string(content)))
+		printHint()
 		return nil
 	}
 
@@ -37,5 +42,11 @@ func (c *viewer) Run() error {
 		return err
 	}
 	fmt.Print(render.MarkDown(question.MdContent))
-	return local.Write(question)
+
+	err = local.Write(question)
+	if err != nil {
+		return err
+	}
+	printHint()
+	return nil
 }

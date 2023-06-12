@@ -19,9 +19,9 @@ const (
 	codeLangKey      = "code"
 	editorKey        = "editor"
 
-	langUsage     = "language for the app"
-	codeLangUsage = "programing language to resolve the problems"
-	editorUsage   = "editor to use"
+	langUsage     = "language, en or cn"
+	codeLangUsage = "programing language"
+	editorUsage   = "editor to use, vim or neovim"
 )
 
 var Config = &cli.Command{

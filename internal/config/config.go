@@ -89,7 +89,7 @@ func merge(pre, cur *Config) *Config {
 	return pre
 }
 
-func Read() ([]byte, error) {
+func read() ([]byte, error) {
 	_, err := os.Stat(configFile)
 	if err != nil {
 		log.Debug(err)
@@ -98,21 +98,17 @@ func Read() ([]byte, error) {
 		}
 		return nil, err
 	}
-
-	data, err := os.ReadFile(configFile)
-	log.Debug(err)
-
-	return data, err
+	return os.ReadFile(configFile)
 }
 
 func Get() (*Config, error) {
-	data, err := Read()
+	data, err := read()
 	if err != nil {
+		log.Debug(err)
 		return nil, err
 	}
 	res := &Config{}
 	err = json.Unmarshal(data, &res)
-	log.Debug(err)
 	return res, err
 }
 
