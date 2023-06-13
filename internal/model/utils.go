@@ -2,6 +2,10 @@ package model
 
 import (
 	"strings"
+
+	h2md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/zrcoder/leetgo/internal/log"
 )
 
 func ReplaceSubscript(s string) string {
@@ -69,3 +73,54 @@ var (
 		return strings.NewReplacer(args...)
 	}()
 )
+
+func Regular(content string) (string, error) {
+	replacer := strings.NewReplacer("&nbsp;", " ", "\u00A0", " ", "\u200B", "")
+	content = replacer.Replace(content)
+	converter := h2md.NewConverter("", true, nil)
+	replaceSub := h2md.Rule{
+		Filter: []string{"sub"},
+		Replacement: func(content string, selec *goquery.Selection, opt *h2md.Options) *string {
+			selec.SetText(ReplaceSubscript(content))
+			return nil
+		},
+	}
+	replaceSup := h2md.Rule{
+		Filter: []string{"sup"},
+		Replacement: func(content string, selec *goquery.Selection, opt *h2md.Options) *string {
+			selec.SetText(ReplaceSuperscript(content))
+			return nil
+		},
+	}
+	replaceEm := h2md.Rule{
+		Filter: []string{"em"},
+		Replacement: func(content string, selec *goquery.Selection, options *h2md.Options) *string {
+			return h2md.String(content)
+		},
+	}
+	converter.AddRules(replaceSub, replaceSup, replaceEm)
+	content, err := converter.ConvertString(content)
+	if err != nil {
+		log.Debug(err)
+		return "", err
+	}
+	content = strings.TrimSpace(content)
+	replacer = strings.NewReplacer(
+		`\-`, "-",
+		`\[`, "[",
+		`\]`, `]`,
+		`\\n`, "\n",
+		`\n`, "\n",
+		`\\`, `\`,
+		`\*`, `*`,
+		`\#`, `#`,
+		"\\`", "`",
+		`\\'`, `'`,
+		`\_`, `_`,
+		`\t`, "\t",
+		`\\t`, "\t",
+	)
+	content = replacer.Replace(content)
+
+	return content, nil
+}

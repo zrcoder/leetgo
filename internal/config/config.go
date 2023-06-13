@@ -16,16 +16,13 @@ const (
 	cnLanguage      = "cn"
 	DefaultEditor   = "neovim"
 
-	enDomain = "https://leetcode.com"
-	cnDomain = "https://leetcode.cn"
-
 	configFile = "leetgo.json"
 )
 
 var (
 	ErrConfigNotExist     = errors.New("no config found, try `leetgo config`")
-	ErrInvalidLan         = errors.New("only cn or en language supported")
-	ErrInvalidCodeLan     = errors.New("not supported code language")
+	ErrInvalidLang        = errors.New("only cn or en language supported")
+	ErrInvalidCodeLang    = errors.New("not supported code language")
 	ErrUnSupporttedEditor = errors.New("only vim and neovim/nvim supported")
 
 	codeLangExtensionDic = map[string]string{
@@ -119,17 +116,6 @@ func Get() (*Config, error) {
 	res := &Config{}
 	err = json.Unmarshal(data, &res)
 	return res, err
-}
-
-func Domain() string {
-	cfg, err := Get()
-	if err != nil {
-		return enDomain
-	}
-	if cfg.Language == cnLanguage {
-		return cnDomain
-	}
-	return enDomain
 }
 
 func IsDefaultLang() bool {

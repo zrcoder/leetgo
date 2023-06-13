@@ -1,11 +1,13 @@
 package comp
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/briandowns/spinner"
+	"github.com/zrcoder/tdoc"
+	tmodel "github.com/zrcoder/tdoc/model"
 
+	"github.com/zrcoder/leetgo/internal/book"
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
@@ -13,35 +15,74 @@ import (
 	"github.com/zrcoder/leetgo/utils/render"
 )
 
-func NewViewer(id string) Component {
-	return &viewer{id: id, spinner: newSpinner("Picking")}
+func NewViewer(id string, solution bool) Component {
+	return &viewer{id: id, solution: solution, spinner: newSpinner("Picking")}
 }
 
 type viewer struct {
-	id string
+	id       string
+	solution bool
 
 	spinner *spinner.Spinner
 }
 
-func (c *viewer) Run() error {
-	isToday := c.id == "today"
-	var today model.Today
+func (v *viewer) Run() error {
+	isToday := v.id == "today"
+	var today *model.Today
 	var err error
 	if isToday {
 		today, err = remote.GetToday()
 		if err != nil {
 			return err
 		}
-		c.id = today.FrontendID()
+		v.id = today.Question().FrontendID
 	}
 
+	if v.solution {
+		return v.viewSolution(isToday, today)
+	}
+
+	return v.viewQuestion(isToday, today)
+}
+
+func (v *viewer) viewSolution(isToday bool, today *model.Today) error {
+	v.spinner.Start()
+	docs, err := v.getDocs(isToday, today)
+	v.spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	return tdoc.Run(docs, tmodel.Config{Title: fmt.Sprintf("Most Voted Solutions for %s", v.id)})
+}
+
+func (v *viewer) getDocs(isToday bool, today *model.Today) ([]*tmodel.DocInfo, error) {
+	var question model.Question
+	var err error
+	if isToday {
+		question = today.Question()
+	} else {
+		q, err := query(v.id)
+		if err != nil {
+			return nil, err
+		}
+		question = *q
+	}
+	solutionsResp, err := remote.GetSolutions(&question)
+	if err != nil {
+		return nil, err
+	}
+	return book.GetMetaListFromSolutions(solutionsResp, &question)
+}
+
+func (v *viewer) viewQuestion(isToday bool, today *model.Today) error {
 	printHint := func() {
-		typeHint := fmt.Sprintf("Type `leetgo code %s` to solve it", c.id)
+		typeHint := fmt.Sprintf("Type `leetgo code %s` to solve it", v.id)
 		fmt.Println(render.MarkDown(typeHint))
 	}
 
-	if local.Exist(c.id) {
-		content, err := local.GetMarkdown(c.id)
+	if local.Exist(v.id) {
+		content, err := local.GetMarkdown(v.id)
 		if err != nil {
 			return err
 		}
@@ -51,13 +92,14 @@ func (c *viewer) Run() error {
 	}
 
 	var question *model.Question
-	c.spinner.Start()
+	var err error
+	v.spinner.Start()
 	if isToday {
-		question, err = remote.GetQuestion(today.ToStatePair()) // faster than query(c.id)
+		question, err = remote.GetQuestion(today.Question().StatePair()) // faster than query(c.id)
 	} else {
-		question, err = query(c.id)
+		question, err = query(v.id)
 	}
-	c.spinner.Stop()
+	v.spinner.Stop()
 	if err != nil {
 		return err
 	}
@@ -88,5 +130,5 @@ func query(frontendID string) (*model.Question, error) {
 		}
 		return remote.GetQuestion(&sp)
 	}
-	return nil, errors.New("question not found")
+	return nil, fmt.Errorf("no questions found for `%s`", frontendID)
 }

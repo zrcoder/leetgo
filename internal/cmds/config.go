@@ -40,7 +40,7 @@ var (
 		Usage:   langUsage,
 		Action: func(ctx *cli.Context, s string) error {
 			if !config.SrpportedLang(s) {
-				return config.ErrInvalidLan
+				return config.ErrInvalidLang
 			}
 			return nil
 		},
@@ -53,7 +53,7 @@ var (
 		Usage:   codeLangUsage,
 		Action: func(ctx *cli.Context, s string) error {
 			if !config.SupportedCodeLang(s) {
-				return config.ErrInvalidCodeLan
+				return config.ErrInvalidCodeLang
 			}
 			return nil
 		},

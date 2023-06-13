@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,7 +90,7 @@ func GetTypedCode(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed code in local, id:", id)
 	return getFromCodeFile(cfg, id, codeStartFlag, codeEndFlag)
 }
-func getNotes(cfg *config.Config, id string) ([]byte, error) {
+func GetNotes(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed notes in local, id:", id)
 	data, err := getFromCodeFile(cfg, id, noteStartFlag, noteEndFlag)
 	if err != nil {
@@ -149,7 +150,7 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 	codeFile := GetCodeFile(cfg, id)
 	buf := bytes.NewBuffer(nil)
 	if config.IsGolang(cfg) {
-		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.Slug, "-", "_"))
+		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.TitleSlug, "-", "_"))
 		buf.WriteString(line)
 	}
 	buf.WriteString(noteStartFlag)
@@ -188,7 +189,7 @@ func writeGoTestFile(question *model.Question, cfg *config.Config) error {
 }
 
 func genGoModFile(question *model.Question, cfg *config.Config) error {
-	return exec.Run(GetDir(cfg, question.FrontendID), "go", "mod", "init", cfg.Language+"-"+question.Slug)
+	return exec.Run(GetDir(cfg, question.FrontendID), "go", "mod", "init", cfg.Language+"-"+question.TitleSlug)
 }
 
 func makeDir(cfg *config.Config, id string) error {
@@ -208,6 +209,23 @@ func GetGoTestFile(cfg *config.Config, id string) string {
 func GetMarkdownFile(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id, markdownFile)
 }
+
+func GetPickedQuestionIds(cfg *config.Config) ([]string, error) {
+	dir := filepath.Join(cfg.Language, cfg.CodeLang)
+	var ids []string
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if path == dir {
+			return nil
+		}
+		if d.IsDir() {
+			ids = append(ids, d.Name())
+			return nil
+		}
+		return nil
+	})
+	return ids, err
+}
+
 func getMetaFile(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id, metaFile)
 }

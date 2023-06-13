@@ -32,7 +32,7 @@ func (s *searcher) Run() error {
 		if err != nil {
 			return err
 		}
-		sps = []model.StatStatusPair{*today.ToStatePair()}
+		sps = []model.StatStatusPair{*today.Question().StatePair()}
 	} else {
 		sps, err = search(s.key)
 	}

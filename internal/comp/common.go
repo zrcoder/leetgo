@@ -39,5 +39,5 @@ func regualarID(id string) string {
 		log.Debug(err)
 		return id
 	}
-	return today.FrontendID()
+	return today.Question().FrontendID
 }

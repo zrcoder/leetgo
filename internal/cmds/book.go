@@ -4,9 +4,10 @@ import (
 	"sort"
 
 	"github.com/urfave/cli/v2"
-
-	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/tdoc"
+	tmodel "github.com/zrcoder/tdoc/model"
+
+	"github.com/zrcoder/leetgo/internal/book"
 )
 
 const (
@@ -35,7 +36,7 @@ var reverseFlag = &cli.BoolFlag{
 }
 
 func bookAction(context *cli.Context) error {
-	docs, err := local.GetMetaList()
+	docs, err := book.GetMetaList()
 	if err != nil {
 		return err
 	}
@@ -58,5 +59,5 @@ func bookAction(context *cli.Context) error {
 			j--
 		}
 	}
-	return tdoc.Run(docs)
+	return tdoc.Run(docs, tmodel.Config{Title: "My Solutions"})
 }

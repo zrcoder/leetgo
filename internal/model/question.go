@@ -5,22 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	h2md "github.com/JohannesKaufmann/html-to-markdown"
-	"github.com/PuerkitoBio/goquery"
-
 	"github.com/zrcoder/leetgo/internal/log"
 )
 
 type Meta struct {
-	FrontendID string
-	Title      string
+	FrontendID string `json:"frontendQuestionId"`
+	Title      string `json:"title"`
 	Referer    string
-	Slug       string
-	Difficulty string
+	TitleSlug  string `json:"titleSlug"`
+	Difficulty string `json:"difficulty"`
+	PaidOnly   bool   `json:"paidOnly"`
 }
 
 type Question struct {
-	// redefined
 	Meta
 	MdContent string `json:"mdContent"`
 
@@ -40,38 +37,10 @@ func (q *Question) TransformContent() error {
 	if content == "" {
 		content = q.Content
 	}
-	replacer := strings.NewReplacer("&nbsp;", " ", "\u00A0", " ", "\u200B", "")
-	content = replacer.Replace(content)
-	converter := h2md.NewConverter("", true, nil)
-	replaceSub := h2md.Rule{
-		Filter: []string{"sub"},
-		Replacement: func(content string, selec *goquery.Selection, opt *h2md.Options) *string {
-			selec.SetText(ReplaceSubscript(content))
-			return nil
-		},
-	}
-	replaceSup := h2md.Rule{
-		Filter: []string{"sup"},
-		Replacement: func(content string, selec *goquery.Selection, opt *h2md.Options) *string {
-			selec.SetText(ReplaceSuperscript(content))
-			return nil
-		},
-	}
-	replaceEm := h2md.Rule{
-		Filter: []string{"em"},
-		Replacement: func(content string, selec *goquery.Selection, options *h2md.Options) *string {
-			return h2md.String(content)
-		},
-	}
-	converter.AddRules(replaceSub, replaceSup, replaceEm)
-	content, err = converter.ConvertString(content)
+	content, err = Regular(content)
 	if err != nil {
-		log.Debug(err)
 		return err
 	}
-	content = strings.TrimSpace(content)
-	replacer = strings.NewReplacer(`\-`, "-", `\[`, "[", `\]`, `]`)
-	content = replacer.Replace(content)
 	q.MdContent = fmt.Sprintf("## [%s. %s](%s) (%s)\n\n%s\n\n",
 		q.FrontendID, q.Title, q.Referer, q.Difficulty, content)
 	q.Content = ""

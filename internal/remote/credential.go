@@ -9,7 +9,6 @@ import (
 	_ "github.com/j178/kooky/browser/edge"
 	_ "github.com/j178/kooky/browser/firefox"
 	_ "github.com/j178/kooky/browser/safari"
-	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
 )
 
@@ -25,8 +24,8 @@ const (
 	sessionKey = "LEETCODE_SESSION"
 )
 
-func getCredentials() (string, string, error) {
-	domain := strings.TrimPrefix(config.Domain(), "https://")
+func getCredentials(domain string) (string, string, error) {
+	domain = strings.TrimPrefix(domain, "https://")
 	return getCredentialsFromBrowsers(domain)
 }
 

@@ -23,3 +23,11 @@ func Debug(x ...any) {
 	log.Helper()
 	log.Debug(x)
 }
+
+func Debugf(fmt string, args ...any) {
+	if !isDebug {
+		return
+	}
+	log.Helper()
+	log.Debugf(fmt, args...)
+}
