@@ -6,14 +6,6 @@ import (
 	"github.com/zrcoder/leetgo/internal/config"
 )
 
-func NewConfiger(cfg *config.Config, shouldWrite bool, showFunc func(*config.Config)) Component {
-	return &configer{
-		cfg:         cfg,
-		shouldWrite: shouldWrite,
-		showFunc:    showFunc,
-	}
-}
-
 type configer struct {
 	cfg         *config.Config
 	shouldWrite bool

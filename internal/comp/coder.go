@@ -8,10 +8,6 @@ import (
 	"github.com/zrcoder/leetgo/utils/exec"
 )
 
-func NewCoder(id string) Component {
-	return &coder{id}
-}
-
 type coder struct {
 	id string
 }

@@ -1,6 +1,6 @@
 package model
 
-type Today struct {
+type Today struct { // just meta info, no question content
 	Data struct {
 		ActiveDaily struct { // leetcode.com
 			Question Question `json:"question"`
@@ -11,13 +11,11 @@ type Today struct {
 	} `json:"data"`
 }
 
-func (t *Today) Question() Question {
-	if len(t.Data.TodayRecord) == 0 {
-		return t.Data.ActiveDaily.Question
+func (t *Today) Meta() *StatStatusPair {
+	q := t.Data.ActiveDaily.Question
+	if len(t.Data.TodayRecord) > 0 {
+		q = t.Data.TodayRecord[0].Question
 	}
-	return t.Data.TodayRecord[0].Question
-}
-func (q Question) StatePair() *StatStatusPair {
 	return &StatStatusPair{
 		Stat: Stat{
 			QuestionTitle:     q.Title,

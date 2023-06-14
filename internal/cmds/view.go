@@ -10,13 +10,11 @@ import (
 	"github.com/zrcoder/leetgo/internal/log"
 )
 
-var ErrNeedQuestionId = errors.New("need question id")
-
 var View = &cli.Command{
 	Name:      "view",
-	Usage:     "view a question or it's solution by id",
+	Usage:     "view questions or solutions",
 	UsageText: "leetgo view [-s] 127",
-	Flags:     []cli.Flag{solutionFlag},
+	Flags:     []cli.Flag{solutionFlag, sortbyFlag, reverseFlag},
 	Action:    viewAction,
 }
 
@@ -26,13 +24,37 @@ var solutionFlag = &cli.BoolFlag{
 	Usage:   "view the most voted solution",
 }
 
+var sortbyFlag = &cli.StringFlag{
+	Name:    "sortby",
+	Aliases: []string{"b"},
+	Usage:   "sort questions by time/title, keep the original order by default",
+	Action: func(ctx *cli.Context, s string) error {
+		if s != "" && s != "time" && s != "title" {
+			return errors.New("only `time` and `title` supported to sort")
+		}
+		return nil
+	},
+}
+
+var reverseFlag = &cli.BoolFlag{
+	Name:    "reverse",
+	Aliases: []string{"r"},
+	Usage:   "reverse sort",
+}
+
 func viewAction(context *cli.Context) error {
-	if context.Args().Len() == 0 {
-		return ErrNeedQuestionId
+	args := context.Args()
+	if args.Len() == 0 {
+		sortby := context.String(sortbyFlag.Name)
+		reverse := context.Bool(reverseFlag.Name)
+		return comp.NewListeViewer(sortby, reverse).Run()
 	}
 
-	id := strings.Join(context.Args().Slice(), " ")
+	id := strings.Join(args.Slice(), " ")
 	solution := context.Bool(solutionFlag.Name)
 	log.Debug("view<", id, "> solution?", solution)
-	return comp.NewViewer(id, solution).Run()
+	if solution {
+		return comp.NewSolutionViewer(id).Run()
+	}
+	return comp.NewSingleViewer(id, solution).Run()
 }

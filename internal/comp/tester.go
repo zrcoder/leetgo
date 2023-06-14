@@ -18,13 +18,6 @@ import (
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func NewTester(id string) Component {
-	return &tester{
-		id:      id,
-		spinner: newSpinner("Remote testing"),
-	}
-}
-
 type tester struct {
 	id      string
 	spinner *spinner.Spinner

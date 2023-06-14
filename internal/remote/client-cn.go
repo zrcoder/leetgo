@@ -21,8 +21,7 @@ func (c *clientCN) GetToday() (res *model.Today, err error) {
 	return c.getToday("todayRecord")
 }
 
-func (c *clientCN) GetSolutions(question *model.Question) (model.SolutionListResp, error) {
-	log.Debug("query solutions for question", question.FrontendID)
+func (c *clientCN) GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
 	const operation = "questionSolutionArticles"
 	const query = `
 	query questionSolutionArticles($questionSlug: String!, $skip: Int, $first: Int, $orderBy: SolutionArticleOrderBy) {
@@ -40,14 +39,14 @@ func (c *clientCN) GetSolutions(question *model.Question) (model.SolutionListRes
 	  }`
 
 	vars := map[string]any{
-		"questionSlug": question.TitleSlug,
+		"questionSlug": meta.Stat.QuestionTitleSlug,
 		"first":        solutionsLimit,
 		"skip":         0,
 		"orderBy":      "MOST_UPVOTE",
 	}
 	body := graphqlBody(query, operation, vars)
 	refer := fmt.Sprintf("%s/problems/%s/solutions/",
-		c.domain, question.TitleSlug)
+		c.domain, meta.Stat.QuestionTitleSlug)
 	log.Debug("refer:", refer)
 	res := &model.SolutionListRespCN{}
 	err := c.graphql(operation, refer, body, res)
@@ -57,8 +56,8 @@ func (c *clientCN) GetSolutions(question *model.Question) (model.SolutionListRes
 	return res, err
 }
 
-func (c *clientCN) GetSolution(req *model.SolutionReq, question *model.Question) (*model.SolutionResp, error) {
-	log.Debugf("load solution, queston slug: %s, solution slug: %s, solution title: %s", question.TitleSlug, req.ID, req.Title)
+func (c *clientCN) GetSolution(req *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
+	log.Debugf("load solution, queston slug: %s, solution slug: %s, solution title: %s", meta.Stat.QuestionTitleSlug, req.ID, req.Title)
 	const operation = "solutionDetailArticle"
 	const query = `
 	query solutionDetailArticle($slug: String!, $orderBy: SolutionArticleOrderBy!) {
@@ -78,7 +77,7 @@ func (c *clientCN) GetSolution(req *model.SolutionReq, question *model.Question)
 	body := graphqlBody(query, operation, vars)
 	refer := fmt.Sprintf("%s/problems/%s/solution/%s/",
 		c.domain,
-		question.TitleSlug,
+		meta.Stat.QuestionTitleSlug,
 		req.ID,
 	)
 	log.Debug("referer:", refer)

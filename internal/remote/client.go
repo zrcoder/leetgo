@@ -167,8 +167,8 @@ func (c *client) CheckResult(id string, question *model.Question, res model.RunR
 	return err
 }
 
-func (c *client) GetSolutions(question *model.Question) (model.SolutionListResp, error) {
-	log.Debug("query solutions for question", question.FrontendID)
+func (c *client) GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
+	log.Debug("query solutions for question", meta.Stat.FrontendID)
 	const operation = "communitySolutions"
 	const query = `
 	query communitySolutions($questionSlug: String!, $skip: Int!, $first: Int!, $orderBy: TopicSortingOption) {
@@ -184,14 +184,14 @@ func (c *client) GetSolutions(question *model.Question) (model.SolutionListResp,
 	  }`
 
 	vars := map[string]any{
-		"questionSlug": question.TitleSlug,
+		"questionSlug": meta.Stat.QuestionTitleSlug,
 		"skip":         0,
 		"first":        solutionsLimit,
 		"orderBy":      "most_votes",
 	}
 	body := graphqlBody(query, operation, vars)
 	refer := fmt.Sprintf("%s/problems/%s/solutions/",
-		c.domain, question.TitleSlug)
+		c.domain, meta.Stat.QuestionTitleSlug)
 	log.Debug("refer:", refer)
 	res := &model.SolutionListRespEN{}
 	err := c.graphql(operation, refer, body, res)
@@ -201,7 +201,7 @@ func (c *client) GetSolutions(question *model.Question) (model.SolutionListResp,
 	return res, err
 }
 
-func (c *client) GetSolution(solution *model.SolutionReq, question *model.Question) (*model.SolutionResp, error) {
+func (c *client) GetSolution(solution *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
 	const operation = "communitySolution"
 	const query = `
 	query communitySolution($topicId: Int!) {
@@ -219,7 +219,7 @@ func (c *client) GetSolution(solution *model.SolutionReq, question *model.Questi
 	body := graphqlBody(query, operation, map[string]any{"topicId": id})
 	refer := fmt.Sprintf("%s/problems/%s/solutions/%d/%s/",
 		c.domain,
-		question.TitleSlug,
+		meta.Stat.QuestionTitleSlug,
 		id,
 		solution.Title,
 	)

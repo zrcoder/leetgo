@@ -10,13 +10,13 @@ import (
 
 type Clienter interface {
 	GetList() (*model.List, error)
-	GetQuestion(sp *model.StatStatusPair) (*model.Question, error)
+	GetQuestion(meta *model.StatStatusPair) (*model.Question, error)
 	GetToday() (res *model.Today, err error)
 	Test(question *model.Question, typedCode, codeLang string) (string, error)
 	Submit(question *model.Question, typedCode, codeLang string) (string, error)
 	CheckResult(id string, question *model.Question, res model.RunResult) error
-	GetSolutions(question *model.Question) (model.SolutionListResp, error)
-	GetSolution(solution *model.SolutionReq, question *model.Question) (*model.SolutionResp, error)
+	GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error)
+	GetSolution(req *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error)
 }
 
 const (
@@ -72,10 +72,10 @@ func CheckResult(id string, question *model.Question, res model.RunResult) error
 	return curCli().CheckResult(id, question, res)
 }
 
-func GetSolutions(question *model.Question) (model.SolutionListResp, error) {
-	return curCli().GetSolutions(question)
+func GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
+	return curCli().GetSolutions(meta)
 }
 
-func GetSolution(solution *model.SolutionReq, question *model.Question) (*model.SolutionResp, error) {
-	return curCli().GetSolution(solution, question)
+func GetSolution(solution *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
+	return curCli().GetSolution(solution, meta)
 }

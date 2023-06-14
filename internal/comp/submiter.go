@@ -13,13 +13,6 @@ import (
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func NewSubmiter(id string) Component {
-	return &submiter{
-		id:      id,
-		spinner: newSpinner("Submitting"),
-	}
-}
-
 type submiter struct {
 	id      string
 	spinner *spinner.Spinner

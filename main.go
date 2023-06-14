@@ -21,7 +21,6 @@ func main() {
 			cmds.Code,
 			cmds.Test,
 			cmds.Submit,
-			cmds.Book,
 		},
 	}
 

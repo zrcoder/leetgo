@@ -6,16 +6,15 @@ Cli APP for Leetcode.
 
 ```shell
 USAGE:
-   leetgo command [command options] [arguments...]
+   leetgo [global options] command [command options] [arguments...]
 
 COMMANDS:
-   config   show or set config of your leetgo project
+   config   init or config your leetgo project
    search   search questions by keywords or id
-   view     view a question by id
+   view     view questions or solutions
    code     edit codes to solve the question
-   test     test your codes locally and remotely
+   test     test your code locally and remotely
    submit   submit your codes
-   book     view all questions you picked as a book
 ```
 
 ## Install
