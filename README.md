@@ -6,7 +6,7 @@ Cli APP for Leetcode.
 
 ```shell
 USAGE:
-   leetgo [global options] command [command options] [arguments...]
+   leetgo command [command options] [arguments...]
 
 COMMANDS:
    config   init or config your leetgo project

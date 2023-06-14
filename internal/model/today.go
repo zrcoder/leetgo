@@ -1,12 +1,12 @@
 package model
 
-type Today struct { // just meta info, no question content
+type Today struct {
 	Data struct {
 		ActiveDaily struct { // leetcode.com
-			Question Question `json:"question"`
+			Question Meta `json:"question"`
 		} `json:"activeDailyCodingChallengeQuestion"`
 		TodayRecord []struct { // leetcode.cn
-			Question Question `json:"question"`
+			Question Meta `json:"question"`
 		} `json:"todayRecord"`
 	} `json:"data"`
 }

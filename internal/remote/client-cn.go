@@ -11,12 +11,6 @@ type clientCN struct {
 	*client
 }
 
-func newClientCN(domain, token, session string) *clientCN {
-	return &clientCN{
-		client: newClient(domain, token, session),
-	}
-}
-
 func (c *clientCN) GetToday() (res *model.Today, err error) {
 	return c.getToday("todayRecord")
 }

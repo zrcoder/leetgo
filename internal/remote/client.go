@@ -17,17 +17,6 @@ type client struct {
 	rb     *requests.Builder
 }
 
-func newClient(domain, token, session string) *client {
-	return &client{
-		domain: domain,
-		rb: requests.New().BaseURL(domain).
-			ContentType("application/json").
-			Cookie("LEETCODE_SESSION", session).
-			Cookie("csrftoken", token).
-			Header("x-csrftoken", token),
-	}
-}
-
 func (c *client) GetList() (*model.List, error) {
 	res := &model.List{}
 	err := c.rb.
@@ -65,12 +54,7 @@ func (c *client) GetQuestion(sp *model.StatStatusPair) (*model.Question, error) 
 	}
 
 	question := res.Data.Question
-	question.FrontendID = sp.Stat.FrontendID
-	question.Title = sp.Stat.QuestionTitle
-	question.TitleSlug = sp.Stat.QuestionTitleSlug
-	question.Referer = refer
-	question.Difficulty = sp.Difficulty.String()
-	err = question.TransformContent()
+	err = question.Transform(sp, refer)
 	return question, err
 }
 

@@ -31,7 +31,16 @@ type Question struct {
 	TranslatedContent string `json:"translatedContent"`
 }
 
-func (q *Question) TransformContent() error {
+func (q *Question) Transform(meta *StatStatusPair, refer string) error {
+	q.FrontendID = meta.Stat.FrontendID
+	q.Title = meta.Stat.QuestionTitle
+	q.TitleSlug = meta.Stat.QuestionTitleSlug
+	q.Difficulty = meta.Difficulty.String()
+	q.Referer = refer
+	return q.transformContent()
+}
+
+func (q *Question) transformContent() error {
 	var err error
 	content := q.TranslatedContent
 	if content == "" {

@@ -3,6 +3,8 @@ package remote
 import (
 	"sync"
 
+	"github.com/carlmjohnson/requests"
+
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
@@ -25,28 +27,6 @@ const (
 
 	solutionsLimit = 10
 )
-
-func curCli() Clienter {
-	var (
-		cli     Clienter
-		cliOnce = sync.Once{}
-	)
-	cliOnce.Do(func() {
-		var token, session string
-		var err error
-		if config.IsDefaultLang() {
-			token, session, err = getCredentials(enDomain)
-			cli = newClient(enDomain, token, session)
-		} else {
-			token, session, err = getCredentials(cnDomain)
-			cli = newClientCN(cnDomain, token, session)
-		}
-		if err != nil {
-			log.Debug(err)
-		}
-	})
-	return cli
-}
 
 func GetList() (*model.List, error) {
 	return curCli().GetList()
@@ -78,4 +58,43 @@ func GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
 
 func GetSolution(solution *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
 	return curCli().GetSolution(solution, meta)
+}
+
+func curCli() Clienter {
+	var (
+		cli     Clienter
+		cliOnce = sync.Once{}
+	)
+	cliOnce.Do(func() {
+		var token, session string
+		var err error
+		if config.IsDefaultLang() {
+			token, session, err = getCredentials(enDomain)
+			cli = newClient(enDomain, token, session)
+		} else {
+			token, session, err = getCredentials(cnDomain)
+			cli = newClientCN(cnDomain, token, session)
+		}
+		if err != nil {
+			log.Debug(err)
+		}
+	})
+	return cli
+}
+
+func newClient(domain, token, session string) *client {
+	return &client{
+		domain: domain,
+		rb: requests.New().BaseURL(domain).
+			ContentType("application/json").
+			Cookie("LEETCODE_SESSION", session).
+			Cookie("csrftoken", token).
+			Header("x-csrftoken", token),
+	}
+}
+
+func newClientCN(domain, token, session string) *clientCN {
+	return &clientCN{
+		client: newClient(domain, token, session),
+	}
 }
