@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zrcoder/leetgo/internal/log"
+	"github.com/zrcoder/leetgo/utils/parser"
 )
 
 type Meta struct {
@@ -46,7 +47,7 @@ func (q *Question) transformContent() error {
 	if content == "" {
 		content = q.Content
 	}
-	content, err = Regular(content)
+	content, err = parser.NewWithString(content).PreRrgular().ToMarkDown().Regular().String()
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,8 @@ package model
 
 import (
 	"strconv"
+
+	"github.com/zrcoder/leetgo/utils/parser"
 )
 
 type SolutionReq struct {
@@ -92,5 +94,6 @@ func (sp *SolutionResp) RegularContent() (string, error) {
 	if content == "" {
 		content = sp.Data.SolutionArticle.Content
 	}
-	return Regular(content)
+	// content is all ready markdown
+	return parser.NewWithString(content).PreRrgular().Regular().String()
 }
