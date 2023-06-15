@@ -79,6 +79,7 @@ func (q *Question) ParseCodes() ([]*Code, error) {
 	var res []*Code
 	err := json.Unmarshal([]byte(q.CodeDefinition), &res)
 	if err != nil {
+		log.Debug(q.CodeDefinition)
 		log.Debug(err)
 	}
 	return res, err

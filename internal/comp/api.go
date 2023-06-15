@@ -11,9 +11,6 @@ type Component interface {
 	Run() error
 }
 
-func NewCoder(id string) Component {
-	return &coder{id}
-}
 func NewConfiger(cfg *config.Config, shouldWrite bool, showFunc func(*config.Config)) Component {
 	return &configer{
 		cfg:         cfg,

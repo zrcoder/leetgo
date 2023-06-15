@@ -1,12 +1,16 @@
 package comp
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/briandowns/spinner"
 
+	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/remote"
+	"github.com/zrcoder/leetgo/utils/exec"
 	"github.com/zrcoder/leetgo/utils/render"
 )
 
@@ -32,12 +36,17 @@ func (v *singleViewer) Run() error {
 		return err
 	}
 
+	if meta.PaidOnly {
+		return errors.New("🔒 the question is locked")
+	}
+
 	v.spinner.Start()
 	question, err := remote.GetQuestion(meta)
 	v.spinner.Stop()
 	if err != nil {
 		return err
 	}
+
 	// TODO with tdoc
 	fmt.Print(render.MarkDown(question.MdContent))
 
@@ -45,13 +54,27 @@ func (v *singleViewer) Run() error {
 	if err != nil {
 		return err
 	}
-	v.printHint()
-	return nil
+
+	return v.askToCode()
 }
 
-func (v *singleViewer) printHint() {
-	typeHint := fmt.Sprintf("Type `leetgo code %s` to solve it", v.id)
-	fmt.Println(render.MarkDown(typeHint))
+func (v *singleViewer) askToCode() error {
+	prompt := &survey.Confirm{
+		Message: "Solve the question now?",
+		Default: true,
+		Help:    "Open the local code file with your favorite editor to edit the code.",
+	}
+
+	code := true
+	err := survey.AskOne(prompt, &code)
+	if err != nil {
+		return err
+	}
+
+	if code {
+		return v.code()
+	}
+	return nil
 }
 
 func (v *singleViewer) checkLocal() (exist bool, err error) {
@@ -64,7 +87,22 @@ func (v *singleViewer) checkLocal() (exist bool, err error) {
 		}
 		// TODO with tdoc
 		fmt.Print(render.MarkDown(string(content)))
-		v.printHint()
+		return true, v.askToCode()
 	}
 	return
+}
+
+func (v singleViewer) code() error {
+	cfg, err := config.Get()
+	if err != nil {
+		return err
+	}
+
+	codeFile := local.GetCodeFile(cfg, v.id)
+	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
+	args := append(ops, codeFile)
+	if config.IsGolang(cfg) {
+		args = append(args, local.GetGoTestFile(cfg, v.id))
+	}
+	return exec.Run("", cmd, args...)
 }
