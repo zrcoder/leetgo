@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	allFile      = "all.json"
 	codeFileName = "solution"
 	markdownFile = "question.md"
 	metaFile     = "question.json"
@@ -33,6 +34,44 @@ var (
 	ErrNotCached = errors.New("not cached in local yet")
 )
 
+func WriteAll(all map[string]model.Meta) error {
+	cfg, err := config.Get()
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(cfg.Language, 0777)
+	if err != nil {
+		return err
+	}
+	data, _ := json.Marshal(all)
+	err = os.WriteFile(filepath.Join(cfg.Language, allFile), data, 0640)
+	if err != nil {
+		log.Debug(err)
+	}
+	return err
+}
+
+func GetAll() (map[string]model.Meta, error) {
+	cfg, err := config.Get()
+	if err != nil {
+		return nil, err
+	}
+	path := filepath.Join(cfg.Language, allFile)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = ErrNotCached
+		}
+		return nil, err
+	}
+	res := map[string]model.Meta{}
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		log.Debug(err)
+	}
+	return res, err
+}
+
 func Exist(id string) bool {
 	cfg, err := config.Get()
 	if err != nil {
@@ -44,15 +83,17 @@ func Exist(id string) bool {
 }
 
 func Write(question *model.Question) error {
-	log.Debug("begin to write question in local, id:", question.FrontendID)
+	log.Debug("begin to write question in local", question.FrontendID, question.Title, question.TitleSlug)
 	cfg, err := config.Get()
 	if err != nil {
 		return err
 	}
 	if err = makeDir(cfg, question.FrontendID); err != nil {
+		log.Debug(err)
 		return err
 	}
 	if err = writeMarkdown(question, cfg); err != nil {
+		log.Debug(err)
 		return err
 	}
 	if err = writeCodeFile(question, cfg); err != nil {
@@ -194,7 +235,9 @@ func genGoModFile(question *model.Question, cfg *config.Config) error {
 
 func makeDir(cfg *config.Config, id string) error {
 	err := os.MkdirAll(GetDir(cfg, id), 0777)
-	log.Debug(err)
+	if err != nil {
+		log.Debug(err)
+	}
 	return err
 }
 func GetDir(cfg *config.Config, id string) string {

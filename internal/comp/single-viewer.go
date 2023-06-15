@@ -26,8 +26,7 @@ func (v *singleViewer) Run() error {
 	if err != nil {
 		return err
 	}
-
-	v.id = meta.Stat.FrontendID // origin id may be "today"
+	v.id = meta.FrontendID // origin id may be "today"
 	exist, err = v.checkLocal()
 	if exist || err != nil {
 		return err

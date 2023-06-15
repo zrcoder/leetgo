@@ -9,13 +9,24 @@ import (
 	"github.com/zrcoder/leetgo/utils/parser"
 )
 
+type QustionsResp struct {
+	Data struct {
+		Total                  int `json:"total"`
+		ProblemsetQuestionList struct {
+			Questions []Meta `json:"questions"`
+		} `json:"problemsetQuestionList"`
+	} `json:"data"`
+}
+
 type Meta struct {
-	FrontendID string `json:"frontendQuestionId"`
-	Title      string `json:"title"`
-	Referer    string
-	TitleSlug  string `json:"titleSlug"`
-	Difficulty string `json:"difficulty"`
-	PaidOnly   bool   `json:"paidOnly"`
+	FrontendID      string `json:"frontendQuestionId"`
+	Title           string `json:"title"`
+	TranslatedTitle string `json:"translatedTitle"`
+	TitleSlug       string `json:"titleSlug"`
+	Difficulty      string `json:"difficulty"`
+	PaidOnly        bool   `json:"paidOnly"`
+	TitleCn         string `json:"titleCn"`
+	Referer         string
 }
 
 type Question struct {
@@ -24,24 +35,28 @@ type Question struct {
 
 	// original
 	QuestionID        string `json:"questionId"`
-	Content           string `json:"content"`
 	Stats             string `json:"stats"`
 	CodeDefinition    string `json:"codeDefinition"`
 	SampleTestCase    string `json:"sampleTestCase"`
 	EnableRunCode     bool   `json:"enableRunCode"`
+	Content           string `json:"content"`
 	TranslatedContent string `json:"translatedContent"`
 }
 
-func (q *Question) Transform(meta *StatStatusPair, refer string) error {
-	q.FrontendID = meta.Stat.FrontendID
-	q.Title = meta.Stat.QuestionTitle
-	q.TitleSlug = meta.Stat.QuestionTitleSlug
-	q.Difficulty = meta.Difficulty.String()
-	q.Referer = refer
-	return q.transformContent()
+func (q *Meta) Transform() {
+	if q.TitleCn != "" {
+		q.Title = q.TitleCn
+	} else if q.TranslatedTitle != "" {
+		q.Title = q.TranslatedTitle
+	}
 }
 
-func (q *Question) transformContent() error {
+func (q *Question) Transform(meta *Meta, refer string) error {
+	q.Referer = refer
+	q.FrontendID = meta.FrontendID
+	q.TitleSlug = meta.TitleSlug
+	q.Difficulty = meta.Difficulty
+	q.Meta.Transform()
 	var err error
 	content := q.TranslatedContent
 	if content == "" {
@@ -49,6 +64,7 @@ func (q *Question) transformContent() error {
 	}
 	content, err = parser.NewWithString(content).PreRrgular().ToMarkDown().Regular().String()
 	if err != nil {
+		log.Debug(err)
 		return err
 	}
 	q.MdContent = fmt.Sprintf("## [%s. %s](%s) (%s)\n\n%s\n\n",
@@ -62,7 +78,9 @@ func (q *Question) ParseCodes() ([]*Code, error) {
 	q.CodeDefinition = strings.ReplaceAll(q.CodeDefinition, `\\n`, `\n`)
 	var res []*Code
 	err := json.Unmarshal([]byte(q.CodeDefinition), &res)
-	log.Debug(err)
+	if err != nil {
+		log.Debug(err)
+	}
 	return res, err
 }
 

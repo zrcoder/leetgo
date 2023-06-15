@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 
 	tmodel "github.com/zrcoder/tdoc/model"
 
@@ -17,7 +16,11 @@ import (
 	"github.com/zrcoder/leetgo/internal/remote"
 )
 
-func queryMeta(frontendID string) (*model.StatStatusPair, error) {
+const (
+	noQuestionFoundForErrFmt = "no question found for `%s`"
+)
+
+func queryMeta(frontendID string) (*model.Meta, error) {
 	spinner := newSpinner("inquiring")
 	spinner.Start()
 	defer spinner.Stop()
@@ -30,65 +33,19 @@ func queryMeta(frontendID string) (*model.StatStatusPair, error) {
 		return today.Meta(), nil
 	}
 
-	list, err := remote.GetList()
-	if err != nil {
-		return nil, err
-	}
-	for _, sp := range list.StatStatusPairs {
-		sp.Stat.FrontendID = sp.Stat.CalFrontendID()
-		if sp.Stat.FrontendID != frontendID {
-			continue
-		}
-		if sp.PaidOnly {
-			err := fmt.Errorf("[%s. %s] is locked", sp.Stat.FrontendID, sp.Stat.QuestionTitle)
-			log.Debug(err)
-			return nil, err
-		}
-		return &sp, nil
-	}
-	return nil, fmt.Errorf("no questions found for `%s`", frontendID)
+	return query(frontendID)
 }
 
-func queryMetas(key string) ([]model.StatStatusPair, error) {
+func queryMetas(key string) ([]model.Meta, error) {
 	if key == "today" {
 		today, err := remote.GetToday()
 		if err != nil {
 			return nil, err
 		}
-		return []model.StatStatusPair{*today.Meta()}, nil
+		return []model.Meta{*today.Meta()}, nil
 	}
 
 	return search(key)
-}
-
-func search(key string) ([]model.StatStatusPair, error) {
-	list, err := remote.GetList()
-	if err != nil {
-		return nil, err
-	}
-
-	lower := strings.ToLower(key)
-	var res []model.StatStatusPair
-	for _, sp := range list.StatStatusPairs {
-		sp.Stat.FrontendID = sp.Stat.CalFrontendID()
-		oriLower := strings.ToLower(sp.Stat.QuestionTitle)
-		for _, sep := range []string{" ", ". ", "."} {
-			title := sp.Stat.FrontendID + sep + oriLower
-			if strings.Contains(title, lower) {
-				res = append(res, sp)
-				break
-			}
-		}
-	}
-	if len(res) == 0 {
-		log.Debug("no questions found")
-		return nil, fmt.Errorf("no questions found for `%s`", key)
-	}
-
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Stat.FrontendID < res[j].Stat.FrontendID
-	})
-	return res, nil
 }
 
 func regualarID(id string) string {
@@ -104,7 +61,7 @@ func regualarID(id string) string {
 		log.Debug(err)
 		return id
 	}
-	return today.Meta().Stat.FrontendID
+	return today.Meta().FrontendID
 }
 
 func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
@@ -175,7 +132,7 @@ func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
 	return docs, nil
 }
 
-func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.StatStatusPair) ([]*tmodel.DocInfo, error) {
+func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.Meta) ([]*tmodel.DocInfo, error) {
 	reqs := solutionsResp.SolutionReqs()
 	docs := make([]*tmodel.DocInfo, len(reqs))
 	for i, req := range reqs {
@@ -196,4 +153,56 @@ func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.Stat
 		docs[i] = doc
 	}
 	return docs, nil
+}
+
+func query(frontendID string) (*model.Meta, error) {
+	allMap, err := local.GetAll()
+	if err == nil {
+		res, ok := allMap[frontendID]
+		if ok {
+			return &res, nil
+		}
+		err = local.ErrNotCached
+	}
+	if err != local.ErrNotCached {
+		return nil, err
+	}
+
+	all, err := remote.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	allMap = make(map[string]model.Meta, len(all.StatStatusPairs))
+	for _, sp := range all.StatStatusPairs {
+		meta := sp.Meta()
+		meta.Transform()
+		allMap[meta.FrontendID] = meta
+	}
+	err = local.WriteAll(allMap)
+	if err != nil {
+		return nil, err
+	}
+	if res, ok := allMap[frontendID]; ok {
+		return &res, nil
+	}
+	return nil, fmt.Errorf(noQuestionFoundForErrFmt, frontendID)
+}
+
+func search(key string) ([]model.Meta, error) {
+	list, err := remote.Search(key)
+	if err != nil {
+		return nil, err
+	}
+
+	res := list.Data.ProblemsetQuestionList.Questions
+
+	if len(res) == 0 {
+		log.Debug("no questions found")
+		return nil, fmt.Errorf(noQuestionFoundForErrFmt, key)
+	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].FrontendID < res[j].FrontendID
+	})
+	return res, nil
 }

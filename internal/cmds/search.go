@@ -18,7 +18,7 @@ var Search = &cli.Command{
 
 func searchAction(context *cli.Context) error {
 	if context.Args().Len() == 0 {
-		return errors.New("please pass a question id or key words")
+		return errors.New("please pass keywords")
 	}
 
 	key := strings.Join(context.Args().Slice(), " ")

@@ -17,7 +17,7 @@ type searcher struct {
 
 func (s *searcher) Run() error {
 	s.spinner.Start()
-	sps, err := queryMetas(s.key)
+	metaList, err := queryMetas(s.key)
 	s.spinner.Stop()
 	if err != nil {
 		return err
@@ -29,17 +29,18 @@ func (s *searcher) Run() error {
 	rowTmp := "| %s  | %s    | %s         | %s     |\n"
 	lockCnt := 0
 	lastQuestionID := ""
-	for _, sp := range sps {
+	for _, meta := range metaList {
 		locked := ""
-		if sp.PaidOnly {
+		if meta.PaidOnly {
 			locked = "🔒"
 			lockCnt++
 		}
-		row := fmt.Sprintf(rowTmp, sp.Stat.FrontendID, sp.Stat.QuestionTitle, sp.Difficulty.String(), locked)
+		meta.Transform()
+		row := fmt.Sprintf(rowTmp, meta.FrontendID, meta.Title, meta.Difficulty, locked)
 		buf.WriteString(row)
-		lastQuestionID = sp.Stat.FrontendID
+		lastQuestionID = meta.FrontendID
 	}
-	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(sps), lockCnt))
+	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(metaList), lockCnt))
 	buf.WriteString(fmt.Sprintf("> view detail? type like: `leetgo view %s`\n", lastQuestionID))
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil

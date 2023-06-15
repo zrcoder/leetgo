@@ -11,18 +11,11 @@ type Today struct {
 	} `json:"data"`
 }
 
-func (t *Today) Meta() *StatStatusPair {
+func (t *Today) Meta() *Meta {
 	q := t.Data.ActiveDaily.Question
 	if len(t.Data.TodayRecord) > 0 {
 		q = t.Data.TodayRecord[0].Question
 	}
-	return &StatStatusPair{
-		Stat: Stat{
-			QuestionTitle:     q.Title,
-			QuestionTitleSlug: q.TitleSlug,
-			FrontendID:        q.FrontendID,
-		},
-		PaidOnly:   q.PaidOnly,
-		Difficulty: StrToDifficulty(q.Difficulty),
-	}
+	q.Transform()
+	return &q
 }

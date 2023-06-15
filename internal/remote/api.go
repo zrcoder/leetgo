@@ -11,28 +11,33 @@ import (
 )
 
 type Clienter interface {
-	GetList() (*model.List, error)
-	GetQuestion(meta *model.StatStatusPair) (*model.Question, error)
+	GetAll() (*model.All, error)
+	Search(keyWords string) (*model.QustionsResp, error)
+	GetQuestion(meta *model.Meta) (*model.Question, error)
 	GetToday() (res *model.Today, err error)
 	Test(question *model.Question, typedCode, codeLang string) (string, error)
 	Submit(question *model.Question, typedCode, codeLang string) (string, error)
 	CheckResult(id string, question *model.Question, res model.RunResult) error
-	GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error)
-	GetSolution(req *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error)
+	GetSolutions(meta *model.Meta) (model.SolutionListResp, error)
+	GetSolution(req *model.SolutionReq, meta *model.Meta) (*model.SolutionResp, error)
 }
 
 const (
 	enDomain = "https://leetcode.com"
 	cnDomain = "https://leetcode.cn"
 
-	solutionsLimit = 10
+	listLimit = 10
 )
 
-func GetList() (*model.List, error) {
-	return curCli().GetList()
+func GetAll() (*model.All, error) {
+	return curCli().GetAll()
 }
 
-func GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
+func Search(keyWords string) (*model.QustionsResp, error) {
+	return curCli().Search(keyWords)
+}
+
+func GetQuestion(sp *model.Meta) (*model.Question, error) {
 	return curCli().GetQuestion(sp)
 }
 
@@ -52,11 +57,11 @@ func CheckResult(id string, question *model.Question, res model.RunResult) error
 	return curCli().CheckResult(id, question, res)
 }
 
-func GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
+func GetSolutions(meta *model.Meta) (model.SolutionListResp, error) {
 	return curCli().GetSolutions(meta)
 }
 
-func GetSolution(solution *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
+func GetSolution(solution *model.SolutionReq, meta *model.Meta) (*model.SolutionResp, error) {
 	return curCli().GetSolution(solution, meta)
 }
 

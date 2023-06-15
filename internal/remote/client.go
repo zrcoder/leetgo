@@ -17,8 +17,8 @@ type client struct {
 	rb     *requests.Builder
 }
 
-func (c *client) GetList() (*model.List, error) {
-	res := &model.List{}
+func (c *client) GetAll() (*model.All, error) {
+	res := &model.All{}
 	err := c.rb.
 		Path("/api/problems/all").
 		ToJSON(res).
@@ -29,32 +29,77 @@ func (c *client) GetList() (*model.List, error) {
 	return res, err
 }
 
-func (c *client) GetQuestion(sp *model.StatStatusPair) (*model.Question, error) {
+func (c *client) Search(keyWords string) (*model.QustionsResp, error) {
+	query := `
+	query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+		problemsetQuestionList: questionList(
+		  categorySlug: $categorySlug
+		  limit: $limit
+		  skip: $skip
+		  filters: $filters
+		) {
+		  total: totalNum
+		  questions: data {
+			difficulty
+			frontendQuestionId: questionFrontendId
+			paidOnly: isPaidOnly
+			title
+			titleSlug
+		  }
+		}
+	  }`
+	return c.search(keyWords, query)
+}
+
+func (c *client) search(keyWords, query string) (*model.QustionsResp, error) {
+	log.Debug("remote search:", keyWords)
+	const operation = "problemsetQuestionList"
+	vars := map[string]any{
+		"skip":         0,
+		"limit":        listLimit,
+		"categorySlug": "",
+		"filters": map[string]string{
+			"searchKeywords": keyWords,
+		},
+	}
+	refer := fmt.Sprintf("%s/problemset/all/?search=%s&page=%d", c.domain, keyWords, 1)
+	res := &model.QustionsResp{}
+	err := c.graphql(operation, query, refer, vars, res)
+	if err != nil {
+		log.Debug(err)
+	}
+	return res, err
+}
+
+func (c *client) GetQuestion(meta *model.Meta) (*model.Question, error) {
+	log.Debug("get question:", meta.FrontendID, meta.Title, meta.TitleSlug)
 	const operation = "getQuestionDetail"
 	const query = `
 	query getQuestionDetail($titleSlug: String!) {
 	  isCurrentUserAuthenticated
 	  question(titleSlug: $titleSlug) {
 		questionId
-		content
 		stats
 		codeDefinition
 		sampleTestCase
 		enableRunCode
+		title
+		content
+ 		translatedTitle
 		translatedContent
 	  }
 	}`
 
-	body := graphqlBody(query, operation, map[string]any{"titleSlug": sp.Stat.QuestionTitleSlug})
-	refer := fmt.Sprintf("%s/problems/%s", c.domain, sp.Stat.QuestionTitleSlug)
+	refer := fmt.Sprintf("%s/problems/%s", c.domain, meta.TitleSlug)
 	res := &model.GetQuestionResponse{}
-	err := c.graphql(operation, refer, body, res)
+	err := c.graphql(operation, query, refer, map[string]any{"titleSlug": meta.TitleSlug}, res)
 	if err != nil {
 		return nil, err
 	}
 
 	question := res.Data.Question
-	err = question.Transform(sp, refer)
+	err = question.Transform(meta, refer)
+
 	return question, err
 }
 
@@ -72,14 +117,14 @@ func (c *client) getToday(key string) (res *model.Today, err error) {
 				frontendQuestionId: questionFrontendId
 				paidOnly: isPaidOnly
 				title
+				titleCn: translatedTitle
 				titleSlug
             }
         }
     }`
-	body := graphqlBody(fmt.Sprintf(queryFmt, key), operation, nil)
 	refer := fmt.Sprintf("%s/problemset/all/", c.domain)
 	res = &model.Today{}
-	err = c.graphql(operation, refer, body, res)
+	err = c.graphql(operation, fmt.Sprintf(queryFmt, key), refer, nil, res)
 	if err != nil {
 		log.Debug(err)
 	}
@@ -87,6 +132,8 @@ func (c *client) getToday(key string) (res *model.Today, err error) {
 }
 
 func (c *client) Test(question *model.Question, typedCode, codeLang string) (string, error) {
+	log.Debugf("remote test, slug(%s), frontendID(%s), titile(%s)",
+		question.TitleSlug, question.FrontendID, question.Title)
 	body := map[string]string{
 		"lang":        codeLang,
 		"question_id": question.QuestionID,
@@ -110,6 +157,8 @@ func (c *client) Test(question *model.Question, typedCode, codeLang string) (str
 }
 
 func (c *client) Submit(question *model.Question, typedCode, codeLang string) (string, error) {
+	log.Debugf("submit, slug(%s), frontendID(%s), titile(%s)",
+		question.TitleSlug, question.FrontendID, question.Title)
 	body := map[string]any{
 		"lang":         codeLang,
 		"questionSlug": question.TitleSlug,
@@ -151,8 +200,8 @@ func (c *client) CheckResult(id string, question *model.Question, res model.RunR
 	return err
 }
 
-func (c *client) GetSolutions(meta *model.StatStatusPair) (model.SolutionListResp, error) {
-	log.Debug("query solutions for question", meta.Stat.FrontendID)
+func (c *client) GetSolutions(meta *model.Meta) (model.SolutionListResp, error) {
+	log.Debug("query solutions for question", meta.FrontendID, meta.Title, meta.TitleSlug)
 	const operation = "communitySolutions"
 	const query = `
 	query communitySolutions($questionSlug: String!, $skip: Int!, $first: Int!, $orderBy: TopicSortingOption) {
@@ -168,24 +217,24 @@ func (c *client) GetSolutions(meta *model.StatStatusPair) (model.SolutionListRes
 	  }`
 
 	vars := map[string]any{
-		"questionSlug": meta.Stat.QuestionTitleSlug,
+		"questionSlug": meta.TitleSlug,
 		"skip":         0,
-		"first":        solutionsLimit,
+		"first":        listLimit,
 		"orderBy":      "most_votes",
 	}
-	body := graphqlBody(query, operation, vars)
 	refer := fmt.Sprintf("%s/problems/%s/solutions/",
-		c.domain, meta.Stat.QuestionTitleSlug)
+		c.domain, meta.TitleSlug)
 	log.Debug("refer:", refer)
 	res := &model.SolutionListRespEN{}
-	err := c.graphql(operation, refer, body, res)
+	err := c.graphql(operation, query, refer, vars, res)
 	if err != nil {
 		log.Debug(err)
 	}
 	return res, err
 }
 
-func (c *client) GetSolution(solution *model.SolutionReq, meta *model.StatStatusPair) (*model.SolutionResp, error) {
+func (c *client) GetSolution(solution *model.SolutionReq, meta *model.Meta) (*model.SolutionResp, error) {
+	log.Debug("get solution", solution.ID, solution.Title, meta.TitleSlug)
 	const operation = "communitySolution"
 	const query = `
 	query communitySolution($topicId: Int!) {
@@ -200,39 +249,38 @@ func (c *client) GetSolution(solution *model.SolutionReq, meta *model.StatStatus
 		}
 	}`
 	id, _ := strconv.Atoi(solution.ID)
-	body := graphqlBody(query, operation, map[string]any{"topicId": id})
 	refer := fmt.Sprintf("%s/problems/%s/solutions/%d/%s/",
 		c.domain,
-		meta.Stat.QuestionTitleSlug,
+		meta.TitleSlug,
 		id,
 		solution.Title,
 	)
 	res := &model.SolutionResp{}
-	err := c.graphql(operation, refer, body, res)
+	err := c.graphql(operation, query, refer, map[string]any{"topicId": id}, res)
 	if err != nil {
 		log.Debug(err)
 	}
 	return res, err
 }
 
-func (c *client) graphql(operation, refer string, body map[string]any, res any) error {
+func (c *client) graphql(operation, query, refer string, vars map[string]any, res any) error {
 	log.Debug("graphql:", operation, refer)
+	body := map[string]any{
+		"operationName": operation,
+		"query":         query,
+		"variables":     vars,
+	}
+	errJson := map[string]any{}
 	err := c.rb.
 		Path("/graphql").
 		Header("Referer", refer).
 		BodyJSON(body).
 		ToJSON(&res).
+		ErrorJSON(&errJson).
 		Fetch(context.Background())
 	if err != nil {
 		log.Debug(err)
+		log.Debug(errJson)
 	}
 	return err
-}
-
-func graphqlBody(query, operation string, variables map[string]any) map[string]any {
-	return map[string]any{
-		"query":         query,
-		"variables":     variables,
-		"operationName": operation,
-	}
 }
