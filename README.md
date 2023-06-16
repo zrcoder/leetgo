@@ -10,7 +10,7 @@ USAGE:
 
 COMMANDS:
    config   init or config your leetgo project
-   search   search questions by keywords or id
+   search   search questions by keywords
    view     view questions or solutions
    test     test your code locally and remotely
    submit   submit your codes
