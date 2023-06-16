@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 
+	"github.com/AlecAivazis/survey/v2"
 	tmodel "github.com/zrcoder/tdoc/model"
 
 	"github.com/zrcoder/leetgo/internal/config"
@@ -14,6 +15,7 @@ import (
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
+	"github.com/zrcoder/leetgo/utils/exec"
 )
 
 const (
@@ -205,4 +207,38 @@ func search(key string) ([]model.Meta, error) {
 		return res[i].FrontendID < res[j].FrontendID
 	})
 	return res, nil
+}
+
+func askToCode(id string) error {
+	prompt := &survey.Confirm{
+		Message: "Solve the question now?",
+		Default: true,
+		Help:    "Open the local code file with your favorite editor to edit the code.",
+	}
+
+	edit := true
+	err := survey.AskOne(prompt, &edit)
+	if err != nil {
+		return err
+	}
+
+	if edit {
+		return code(id)
+	}
+	return nil
+}
+
+func code(id string) error {
+	cfg, err := config.Get()
+	if err != nil {
+		return err
+	}
+
+	codeFile := local.GetCodeFile(cfg, id)
+	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
+	args := append(ops, codeFile)
+	if config.IsGolang(cfg) {
+		args = append(args, local.GetGoTestFile(cfg, id))
+	}
+	return exec.Run("", cmd, args...)
 }

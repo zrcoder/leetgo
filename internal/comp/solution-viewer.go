@@ -37,5 +37,10 @@ func (s *solutionViewer) Run() error {
 		return err
 	}
 
-	return tdoc.Run(docs, tmodel.Config{Title: fmt.Sprintf("Most Voted Solutions for %s", s.id)})
+	err = tdoc.Run(docs, tmodel.Config{Title: fmt.Sprintf("Most Voted Solutions for %s", s.id)})
+	if err != nil {
+		return err
+	}
+
+	return askToCode(s.id)
 }
