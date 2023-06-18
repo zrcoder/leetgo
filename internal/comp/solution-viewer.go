@@ -37,6 +37,7 @@ func (s *solutionViewer) Run() error {
 		return err
 	}
 
+	s.id = meta.FrontendID // original s.id may be "today"
 	err = tdoc.Run(docs, tmodel.Config{Title: fmt.Sprintf("Most Voted Solutions for %s", s.id)})
 	if err != nil {
 		return err
