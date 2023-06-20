@@ -152,6 +152,7 @@ func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.Meta
 		req := req // for doc.Getter
 		doc := &tmodel.DocInfo{}
 		doc.Title = req.Title
+		doc.Description = req.Author + " . " + req.CreateAt.Format("2006-01-02 15:04")
 		doc.Getter = func(s string) ([]byte, error) {
 			rsp, err := remote.GetSolution(&req, meta)
 			if err != nil {

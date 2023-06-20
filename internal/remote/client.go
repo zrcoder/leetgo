@@ -212,6 +212,12 @@ func (c *client) GetSolutions(meta *model.Meta) (model.SolutionListResp, error) 
 		  solutions {
 			id
 			title
+			post {
+				creationDate
+				author {
+					username
+				}
+			}
 		  }
 		}
 	  }`

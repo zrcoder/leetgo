@@ -15,7 +15,7 @@ require (
 	github.com/j178/kooky v0.0.0-20230609034248-af88dcd40695
 	github.com/urfave/cli/v2 v2.25.6
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
-	github.com/zrcoder/tdoc v0.0.0-20230620091626-9fba8dd6e6f6
+	github.com/zrcoder/tdoc v0.0.0-20230620101509-a750e682c84a
 )
 
 require (

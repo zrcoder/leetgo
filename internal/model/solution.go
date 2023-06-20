@@ -2,13 +2,16 @@ package model
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/zrcoder/leetgo/utils/parser"
 )
 
 type SolutionReq struct {
-	ID    string
-	Title string
+	ID       string
+	Title    string
+	CreateAt time.Time
+	Author   string
 }
 
 type SolutionListResp interface {
@@ -22,6 +25,12 @@ type SolutionListRespEN struct {
 			Solutions []struct {
 				ID    int    `json:"id"`
 				Title string `json:"title"`
+				Post  struct {
+					CreationDate int `json:"creationDate"`
+					Author       struct {
+						Username string `json:"username"`
+					} `json:"author"`
+				} `json:"post"`
 			} `json:"solutions"`
 		} `json:"questionSolutions"`
 	} `json:"data"`
@@ -32,8 +41,10 @@ func (se *SolutionListRespEN) SolutionReqs() []SolutionReq {
 	res := make([]SolutionReq, len(solutions))
 	for i, s := range solutions {
 		res[i] = SolutionReq{
-			ID:    strconv.Itoa(s.ID),
-			Title: s.Title,
+			ID:       strconv.Itoa(s.ID),
+			Title:    s.Title,
+			CreateAt: time.Unix(int64(s.Post.CreationDate), 0),
+			Author:   s.Post.Author.Username,
 		}
 	}
 	return res
@@ -44,8 +55,12 @@ type SolutionListRespCN struct {
 		QuestionSolutionArticles struct {
 			Edges []struct {
 				Node struct {
-					Slug  string `json:"slug"`
-					Title string `json:"title"`
+					Slug      string    `json:"slug"`
+					Title     string    `json:"title"`
+					CreatedAt time.Time `json:"createdAt"`
+					Author    struct {
+						Username string `json:"username"`
+					} `json:"author"`
 				} `json:"node"`
 			} `json:"edges"`
 		} `json:"questionSolutionArticles"`
@@ -57,8 +72,10 @@ func (sc *SolutionListRespCN) SolutionReqs() []SolutionReq {
 	res := make([]SolutionReq, len(edges))
 	for i, e := range edges {
 		res[i] = SolutionReq{
-			ID:    e.Node.Slug,
-			Title: e.Node.Title,
+			ID:       e.Node.Slug,
+			Title:    e.Node.Title,
+			CreateAt: e.Node.CreatedAt,
+			Author:   e.Node.Author.Username,
 		}
 	}
 	return res

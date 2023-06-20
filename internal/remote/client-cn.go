@@ -53,6 +53,10 @@ func (c *clientCN) GetSolutions(meta *model.Meta) (model.SolutionListResp, error
 	  fragment solutionArticle on SolutionArticleNode {
 		title
 		slug
+		createdAt
+		author {
+			username
+		}
 	  }`
 
 	vars := map[string]any{
