@@ -2,13 +2,13 @@ package comp
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/briandowns/spinner"
+	"github.com/zrcoder/tdoc"
+	tmodel "github.com/zrcoder/tdoc/model"
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/remote"
-	"github.com/zrcoder/leetgo/utils/render"
 )
 
 type singleViewer struct {
@@ -18,7 +18,7 @@ type singleViewer struct {
 }
 
 func (v *singleViewer) Run() error {
-	exist, err := v.checkLocal()
+	exist, err := v.localAction()
 	if exist || err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (v *singleViewer) Run() error {
 		return err
 	}
 	v.id = meta.FrontendID // origin id may be "today"
-	exist, err = v.checkLocal()
+	exist, err = v.localAction()
 	if exist || err != nil {
 		return err
 	}
@@ -44,10 +44,12 @@ func (v *singleViewer) Run() error {
 		return err
 	}
 
-	// TODO with tdoc
-	fmt.Print(render.MarkDown(question.MdContent))
-
 	err = local.Write(question)
+	if err != nil {
+		return err
+	}
+
+	err = v.show()
 	if err != nil {
 		return err
 	}
@@ -55,17 +57,22 @@ func (v *singleViewer) Run() error {
 	return askToCode(v.id)
 }
 
-func (v *singleViewer) checkLocal() (exist bool, err error) {
+func (v *singleViewer) localAction() (exist bool, err error) {
 	if local.Exist(v.id) {
 		exist = true
-		var content []byte
-		content, err = local.GetMarkdown(v.id)
+		err = v.show()
 		if err != nil {
 			return
 		}
-		// TODO with tdoc
-		fmt.Print(render.MarkDown(string(content)))
 		return true, askToCode(v.id)
 	}
 	return
+}
+
+func (v *singleViewer) show() error {
+	doc, err := getDocFromLocal(v.id)
+	if err != nil {
+		return err
+	}
+	return tdoc.Run([]*tmodel.DocInfo{doc})
 }

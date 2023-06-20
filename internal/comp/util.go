@@ -66,6 +66,57 @@ func regualarID(id string) string {
 	return today.Meta().FrontendID
 }
 
+func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
+	cfg, err := config.Get()
+	if err != nil {
+		return nil, err
+	}
+	doc := &tmodel.DocInfo{}
+	question, err := local.GetQuestion(cfg, id)
+	if err != nil {
+		return nil, err
+	}
+	doc.Title = fmt.Sprintf("%s. %s", id, question.Title)
+	mdFile := local.GetMarkdownFile(cfg, id)
+	fi, err := os.Stat(mdFile)
+	if err != nil {
+		return nil, err
+	}
+	doc.ModTime = fi.ModTime()
+	log.Debug(doc.Title, doc.ModTime)
+	doc.Getter = func(filename string) ([]byte, error) {
+		mdData, err := os.ReadFile(mdFile)
+		if err != nil {
+			return nil, err
+		}
+		codeData, err := local.GetTypedCode(cfg, id)
+		if err != nil {
+			return nil, err
+		}
+		noteDate, err := local.GetNotes(cfg, id)
+		if err != nil {
+			return nil, err
+		}
+		noteDate = bytes.TrimSpace(noteDate)
+		mdData = bytes.TrimSpace(mdData)
+
+		buf := bytes.NewBuffer(nil)
+		buf.WriteString("\n\n## My Solution:\n\n")
+		if len(noteDate) > 0 {
+			buf.Write(noteDate)
+			buf.WriteString("\n\n")
+		}
+		codeLang := config.DisplayLang(cfg.CodeLang)
+		buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
+		buf.Write(codeData)
+		buf.WriteString("\n```\n")
+
+		mdData = append(mdData, buf.Bytes()...)
+		return mdData, nil
+	}
+	return doc, nil
+}
+
 func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
 	cfg, err := config.Get()
 	if err != nil {
@@ -84,49 +135,9 @@ func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
 	docs := make([]*tmodel.DocInfo, len(ids))
 
 	for i, id := range ids {
-		id := id // for doc.Getter below, captrue current id
-		doc := &tmodel.DocInfo{}
-		question, err := local.GetQuestion(cfg, id)
+		doc, err := getDocFromLocal(id)
 		if err != nil {
 			return nil, err
-		}
-		doc.Title = fmt.Sprintf("%s. %s", id, question.Title)
-		mdFile := local.GetMarkdownFile(cfg, id)
-		fi, err := os.Stat(mdFile)
-		if err != nil {
-			return nil, err
-		}
-		doc.ModTime = fi.ModTime()
-		log.Debug(doc.Title, doc.ModTime)
-		doc.Getter = func(filename string) ([]byte, error) {
-			mdData, err := os.ReadFile(mdFile)
-			if err != nil {
-				return nil, err
-			}
-			codeData, err := local.GetTypedCode(cfg, id)
-			if err != nil {
-				return nil, err
-			}
-			noteDate, err := local.GetNotes(cfg, id)
-			if err != nil {
-				return nil, err
-			}
-			noteDate = bytes.TrimSpace(noteDate)
-			mdData = bytes.TrimSpace(mdData)
-
-			buf := bytes.NewBuffer(nil)
-			buf.WriteString("\n\n## My Solution:\n\n")
-			if len(noteDate) > 0 {
-				buf.Write(noteDate)
-				buf.WriteString("\n\n")
-			}
-			codeLang := config.DisplayLang(cfg.CodeLang)
-			buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
-			buf.Write(codeData)
-			buf.WriteString("\n```\n")
-
-			mdData = append(mdData, buf.Bytes()...)
-			return mdData, nil
 		}
 		docs[i] = doc
 	}
