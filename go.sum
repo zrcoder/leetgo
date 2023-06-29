@@ -118,6 +118,8 @@ github.com/muesli/reflow v0.3.0/go.mod h1:pbwTDkVPibjO2kyvBQRBxTWEEGDGq0FlB1BIKt
 github.com/muesli/termenv v0.13.0/go.mod h1:sP1+uffeLaEYpyOTb8pLCUctGcGLnoFjSn4YJK5e2bc=
 github.com/muesli/termenv v0.15.1 h1:UzuTb/+hhlBugQz28rpzey4ZuKcZ03MeKsoG7IJZIxs=
 github.com/muesli/termenv v0.15.1/go.mod h1:HeAQPTzpfs016yGtA4g00CsdYnVLJvxsS4ANqrZs2sQ=
+github.com/muesli/termenv v0.15.2 h1:GohcuySI0QmI3wN8Ok9PtKGkgkFIk7y6Vpb5PvrY+Wo=
+github.com/muesli/termenv v0.15.2/go.mod h1:Epx+iuz8sNs7mNKhxzH4fWXGNpZwUaJKRS1noLXviQ8=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
@@ -161,6 +163,10 @@ github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db h1:GiYcv6tEo8yme647Cf
 github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db/go.mod h1:6JjIozsIKDJ2H0S0ePLIoVbhhBvI15a/oFlMYsfIsSA=
 github.com/zrcoder/tdoc v0.0.0-20230620111348-9d72d1c6b4a0 h1:Z2E0l8OUVGuCluIfomuNir8Wnw5ENjwrhv+YBpKf1vc=
 github.com/zrcoder/tdoc v0.0.0-20230620111348-9d72d1c6b4a0/go.mod h1:0MExcUvtLVDcDGVoCLQA+YgG9FMD4zPlqxm7el13UQM=
+github.com/zrcoder/tdoc v0.0.0-20230622023302-2e3c71e356f3 h1:6IMGEVAP0Xw86Yuksa+LH0FDftwUOwz+JvG5eZM4PGU=
+github.com/zrcoder/tdoc v0.0.0-20230622023302-2e3c71e356f3/go.mod h1:0MExcUvtLVDcDGVoCLQA+YgG9FMD4zPlqxm7el13UQM=
+github.com/zrcoder/tdoc v0.0.0-20230629122849-e374e241945e h1:tMrpPnOKoRfh8iNnaqkgrF7LQxLdsEnT/tbZyHyxyNE=
+github.com/zrcoder/tdoc v0.0.0-20230629122849-e374e241945e/go.mod h1:0MExcUvtLVDcDGVoCLQA+YgG9FMD4zPlqxm7el13UQM=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/crypto v0.10.0 h1:LKqV2xt9+kDzSTfOhx4FrkEBcMrAgHSYgzywV9zcGmM=

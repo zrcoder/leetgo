@@ -15,7 +15,7 @@ require (
 	github.com/j178/kooky v0.0.0-20230609034248-af88dcd40695
 	github.com/urfave/cli/v2 v2.25.6
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
-	github.com/zrcoder/tdoc v0.0.0-20230620111348-9d72d1c6b4a0
+	github.com/zrcoder/tdoc v0.0.0-20230629122849-e374e241945e
 )
 
 require (
@@ -53,7 +53,7 @@ require (
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
-	github.com/muesli/termenv v0.15.1 // indirect
+	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
