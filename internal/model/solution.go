@@ -21,17 +21,17 @@ type SolutionListResp interface {
 type SolutionListRespEN struct {
 	Data struct {
 		QuestionSolutions struct {
-			TotalNum  int `json:"totalNum"`
 			Solutions []struct {
-				ID    int    `json:"id"`
 				Title string `json:"title"`
 				Post  struct {
-					CreationDate int `json:"creationDate"`
-					Author       struct {
+					Author struct {
 						Username string `json:"username"`
 					} `json:"author"`
+					CreationDate int `json:"creationDate"`
 				} `json:"post"`
+				ID int `json:"id"`
 			} `json:"solutions"`
+			TotalNum int `json:"totalNum"`
 		} `json:"questionSolutions"`
 	} `json:"data"`
 }
@@ -83,18 +83,7 @@ func (sc *SolutionListRespCN) SolutionReqs() []SolutionReq {
 
 type SolutionResp struct {
 	Data struct {
-		Topic struct { // leetcode.com
-			ID     int    `json:"id"`
-			Title  string `json:"title"`
-			Pinned bool   `json:"pinned"`
-			Post   struct {
-				ID         int    `json:"id"`
-				VoteCount  int    `json:"voteCount"`
-				VoteStatus int    `json:"voteStatus"`
-				Content    string `json:"content"`
-			} `json:"post"`
-		} `json:"topic"`
-		SolutionArticle struct { // leetcode.cn
+		SolutionArticle struct {
 			Title    string `json:"title"`
 			Summary  string `json:"summary"`
 			Content  string `json:"content"`
@@ -103,6 +92,17 @@ type SolutionResp struct {
 				Typename          string `json:"__typename"`
 			} `json:"question"`
 		} `json:"solutionArticle"`
+		Topic struct {
+			Title string `json:"title"`
+			Post  struct {
+				Content    string `json:"content"`
+				ID         int    `json:"id"`
+				VoteCount  int    `json:"voteCount"`
+				VoteStatus int    `json:"voteStatus"`
+			} `json:"post"`
+			ID     int  `json:"id"`
+			Pinned bool `json:"pinned"`
+		} `json:"topic"`
 	} `json:"data"`
 }
 

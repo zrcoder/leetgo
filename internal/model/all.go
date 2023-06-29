@@ -15,9 +15,9 @@ type StatStatusPair struct {
 }
 
 type Stat struct {
+	FrontendQuestionID any    `json:"frontend_question_id"`
 	QuestionTitle      string `json:"question__title"`
 	QuestionTitleSlug  string `json:"question__title_slug"`
-	FrontendQuestionID any    `json:"frontend_question_id"` // leetcode.com is number, but leetcode.cn is string
 }
 
 type Difficulty struct {

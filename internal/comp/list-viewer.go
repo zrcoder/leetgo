@@ -7,8 +7,6 @@ import (
 	tmodel "github.com/zrcoder/tdoc/model"
 )
 
-
-
 type listViewer struct {
 	sortby  string
 	reverse bool
@@ -20,11 +18,12 @@ func (l *listViewer) Run() error {
 		return err
 	}
 
-	if l.sortby == "time" {
+	switch l.sortby {
+	case "time":
 		sort.Slice(docs, func(i, j int) bool {
 			return docs[i].ModTime.Before(docs[j].ModTime)
 		})
-	} else if l.sortby == "title" {
+	case "title":
 		sort.Slice(docs, func(i, j int) bool {
 			return docs[i].Title < docs[j].Title
 		})

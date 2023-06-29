@@ -14,8 +14,8 @@ import (
 )
 
 type submiter struct {
-	id      string
 	spinner *spinner.Spinner
+	id      string
 }
 
 func (t *submiter) Run() error {

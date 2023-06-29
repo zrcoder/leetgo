@@ -11,10 +11,10 @@ import (
 
 type QustionsResp struct {
 	Data struct {
-		Total                  int `json:"total"`
 		ProblemsetQuestionList struct {
 			Questions []Meta `json:"questions"`
 		} `json:"problemsetQuestionList"`
+		Total int `json:"total"`
 	} `json:"data"`
 }
 
@@ -24,23 +24,21 @@ type Meta struct {
 	TranslatedTitle string `json:"translatedTitle"`
 	TitleSlug       string `json:"titleSlug"`
 	Difficulty      string `json:"difficulty"`
-	PaidOnly        bool   `json:"paidOnly"`
 	TitleCn         string `json:"titleCn"`
 	Referer         string
+	PaidOnly        bool `json:"paidOnly"`
 }
 
 type Question struct {
-	Meta
-	MdContent string `json:"mdContent"`
-
-	// original
+	MdContent         string `json:"mdContent"`
 	QuestionID        string `json:"questionId"`
 	Stats             string `json:"stats"`
 	CodeDefinition    string `json:"codeDefinition"`
 	SampleTestCase    string `json:"sampleTestCase"`
-	EnableRunCode     bool   `json:"enableRunCode"`
 	Content           string `json:"content"`
 	TranslatedContent string `json:"translatedContent"`
+	Meta
+	EnableRunCode bool `json:"enableRunCode"`
 }
 
 func (q *Meta) Transform() {

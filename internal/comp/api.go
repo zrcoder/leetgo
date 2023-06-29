@@ -18,24 +18,29 @@ func NewConfiger(cfg *config.Config, shouldWrite bool, showFunc func(*config.Con
 		showFunc:    showFunc,
 	}
 }
+
 func NewListeViewer(sortBy string, reverse bool) Component {
 	return &listViewer{
 		sortby:  sortBy,
 		reverse: reverse,
 	}
 }
+
 func NewSearcher(key string) Component {
 	return &searcher{key: key, spinner: newSpinner("Searching")}
 }
+
 func NewSingleViewer(id string, solution bool) Component {
 	return &singleViewer{id: id, spinner: newSpinner("Picking")}
 }
+
 func NewSubmiter(id string) Component {
 	return &submiter{
 		id:      id,
 		spinner: newSpinner("Submitting"),
 	}
 }
+
 func NewTester(id string) Component {
 	return &tester{
 		id:      id,

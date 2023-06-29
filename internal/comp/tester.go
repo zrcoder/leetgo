@@ -19,8 +19,8 @@ import (
 )
 
 type tester struct {
-	id      string
 	spinner *spinner.Spinner
+	id      string
 }
 
 func (t *tester) Run() error {
