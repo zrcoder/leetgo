@@ -10,9 +10,8 @@ import (
 )
 
 type searcher struct {
-	key string
-
 	spinner *spinner.Spinner
+	key     string
 }
 
 func (s *searcher) Run() error {
@@ -40,8 +39,8 @@ func (s *searcher) Run() error {
 		buf.WriteString(row)
 		lastQuestionID = meta.FrontendID
 	}
-	buf.WriteString(fmt.Sprintf("> total: %d, locked: %d\n", len(metaList), lockCnt))
-	buf.WriteString(fmt.Sprintf("> view detail? type like: `leetgo view %s`\n", lastQuestionID))
+	fmt.Fprintf(buf, "> total: %d, locked: %d\n", len(metaList), lockCnt)
+	fmt.Fprintf(buf, "> view detail? type like: `leetgo view %s`\n", lastQuestionID)
 	fmt.Println(render.MarkDown(buf.String()))
 	return nil
 }

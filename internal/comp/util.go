@@ -7,7 +7,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/AlecAivazis/survey/v2"
+	"github.com/charmbracelet/huh"
 	tmodel "github.com/zrcoder/tdoc/model"
 
 	"github.com/zrcoder/leetgo/internal/config"
@@ -84,7 +84,7 @@ func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
 	}
 	doc.ModTime = fi.ModTime()
 	log.Debug(doc.Title, doc.ModTime)
-	doc.Getter = func(filename string) ([]byte, error) {
+	doc.Getter = func(_ string) ([]byte, error) {
 		mdData, err := os.ReadFile(mdFile)
 		if err != nil {
 			return nil, err
@@ -107,7 +107,7 @@ func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
 			buf.WriteString("\n\n")
 		}
 		codeLang := config.DisplayLang(cfg.CodeLang)
-		buf.WriteString(fmt.Sprintf("```%s\n", codeLang))
+		fmt.Fprintf(buf, "```%s\n", codeLang)
 		buf.Write(codeData)
 		buf.WriteString("\n```\n")
 
@@ -153,7 +153,7 @@ func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.Meta
 		doc := &tmodel.DocInfo{}
 		doc.Title = req.Title
 		doc.Description = req.Author + " . " + req.CreateAt.Format("2006-01-02 15:04")
-		doc.Getter = func(s string) ([]byte, error) {
+		doc.Getter = func(_ string) ([]byte, error) {
 			rsp, err := remote.GetSolution(&req, meta)
 			if err != nil {
 				return nil, err
@@ -222,14 +222,12 @@ func search(key string) ([]model.Meta, error) {
 }
 
 func askToCode(id string) error {
-	prompt := &survey.Confirm{
-		Message: "Solve the question now?",
-		Default: true,
-		Help:    "Open the local code file with your favorite editor to edit the code.",
-	}
-
 	edit := true
-	err := survey.AskOne(prompt, &edit)
+	err := huh.NewConfirm().
+		Title("Solve the question now?").
+		Description("Open the local code file with your favorite editor to edit the code.").
+		Value(&edit).
+		Run()
 	if err != nil {
 		return err
 	}

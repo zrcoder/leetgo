@@ -30,9 +30,7 @@ const (
 	codeEndFlag   = "// @submit end\n"
 )
 
-var (
-	ErrNotCached = errors.New("not cached in local yet")
-)
+var ErrNotCached = errors.New("not cached in local yet")
 
 func WriteAll(all map[string]model.Meta) error {
 	cfg, err := config.Get()
@@ -131,6 +129,7 @@ func GetTypedCode(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed code in local, id:", id)
 	return getFromCodeFile(cfg, id, codeStartFlag, codeEndFlag)
 }
+
 func GetNotes(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed notes in local, id:", id)
 	data, err := getFromCodeFile(cfg, id, noteStartFlag, noteEndFlag)
@@ -240,15 +239,19 @@ func makeDir(cfg *config.Config, id string) error {
 	}
 	return err
 }
+
 func GetDir(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id)
 }
+
 func GetCodeFile(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id, codeFileName+config.GetCodeFileExt(cfg.CodeLang))
 }
+
 func GetGoTestFile(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id, codeFileName+"_test"+config.GetCodeFileExt(cfg.CodeLang))
 }
+
 func GetMarkdownFile(cfg *config.Config, id string) string {
 	return filepath.Join(cfg.Language, cfg.CodeLang, id, markdownFile)
 }
@@ -256,7 +259,7 @@ func GetMarkdownFile(cfg *config.Config, id string) string {
 func GetPickedQuestionIds(cfg *config.Config) ([]string, error) {
 	dir := filepath.Join(cfg.Language, cfg.CodeLang)
 	var ids []string
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, _ error) error {
 		if path == dir {
 			return nil
 		}

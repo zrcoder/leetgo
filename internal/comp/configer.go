@@ -1,15 +1,15 @@
 package comp
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	"github.com/charmbracelet/huh"
 
 	"github.com/zrcoder/leetgo/internal/config"
 )
 
 type configer struct {
 	cfg         *config.Config
-	shouldWrite bool
 	showFunc    func(*config.Config)
+	shouldWrite bool
 }
 
 func (c *configer) Run() error {
@@ -18,13 +18,13 @@ func (c *configer) Run() error {
 		if err != config.ErrConfigNotExist {
 			return err
 		}
-		init := false
-		prompt := &survey.Confirm{
-			Message: "No config found in the current directory, initial?",
-			Default: true,
-			Help:    "Initial the current directory as your leetgo project.",
-		}
-		if err = survey.AskOne(prompt, &init); err != nil {
+		init := true
+		err = huh.NewConfirm().
+			Title("No config found in the current directory, initial?").
+			Description("Initial the current directory as your leetgo project.").
+			Value(&init).
+			Run()
+		if err != nil {
 			return err
 		}
 		if !init {

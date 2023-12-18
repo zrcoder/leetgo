@@ -14,35 +14,35 @@ type RunResult interface {
 
 type TestCheckResult struct {
 	InputData          string
-	State              string   `json:"state"` // STARTED, SUCCESS
-	StatusCode         int      `json:"status_code"`
-	StatusMsg          string   `json:"status_msg"`  // Accepted, Wrong Answer, Time Limit Exceeded, Memory Limit Exceeded, Runtime Error, Compile Error, Output Limit Exceeded, Unknown Error
-	CodeAnswer         []string `json:"code_answer"` // return values of our code
+	State              string   `json:"state"`
+	StatusMsg          string   `json:"status_msg"`
 	FullCompileError   string   `json:"full_compile_error"`
 	FullRuntimeError   string   `json:"full_runtime_error"`
-	CompareResult      string   `json:"compare_result"` // "111", 1 means correct, 0 means wrong
-	CorrectAnswer      bool     `json:"correct_answer"` // true means all passed
-	CodeOutput         []string `json:"code_output"`    // output to stdout of our code
+	CompareResult      string   `json:"compare_result"`
+	CodeAnswer         []string `json:"code_answer"`
+	CodeOutput         []string `json:"code_output"`
 	ExpectedCodeAnswer []string `json:"expected_code_answer"`
+	StatusCode         int      `json:"status_code"`
+	CorrectAnswer      bool     `json:"correct_answer"`
 }
 
 type SubmitCheckResult struct {
-	CodeOutput        string  `json:"code_output"` // answers of our code
+	StdOutput         string  `json:"std_output"`
 	CompareResult     string  `json:"compare_result"`
 	ExpectedOutput    string  `json:"expected_output"`
 	LastTestcase      string  `json:"last_testcase"`
-	MemoryPercentile  float64 `json:"memory_percentile"`
-	RuntimePercentile float64 `json:"runtime_percentile"`
+	CodeOutput        string  `json:"code_output"`
+	FullRuntimeError  string  `json:"full_runtime_error"`
 	State             string  `json:"state"`
-	StatusCode        int     `json:"status_code"`
+	FullCompileError  string  `json:"full_compile_error"`
 	StatusMemory      string  `json:"status_memory"`
 	StatusMsg         string  `json:"status_msg"`
 	StatusRuntime     string  `json:"status_runtime"`
-	StdOutput         string  `json:"std_output"`
+	MemoryPercentile  float64 `json:"memory_percentile"`
 	TotalCorrect      int     `json:"total_correct"`
 	TotalTestcases    int     `json:"total_testcases"`
-	FullCompileError  string  `json:"full_compile_error"`
-	FullRuntimeError  string  `json:"full_runtime_error"`
+	StatusCode        int     `json:"status_code"`
+	RuntimePercentile float64 `json:"runtime_percentile"`
 }
 
 type StatusCode int
