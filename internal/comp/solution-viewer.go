@@ -14,9 +14,8 @@ func NewSolutionViewer(id string) Component {
 }
 
 type solutionViewer struct {
-	id string
-
 	spinner *spinner.Spinner
+	id      string
 }
 
 func (s *solutionViewer) Run() error {

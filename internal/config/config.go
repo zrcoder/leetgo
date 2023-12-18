@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 
 	_ "github.com/zellyn/kooky/browser/all"
 
 	"github.com/zrcoder/leetgo/internal/log"
+
+	home "github.com/mitchellh/go-homedir"
 )
 
 const (
@@ -15,8 +18,6 @@ const (
 	DefaultCodeLang = "go"
 	cnLanguage      = "cn"
 	DefaultEditor   = "neovim"
-
-	configFile = "leetgo.json"
 )
 
 var (
@@ -24,6 +25,9 @@ var (
 	ErrInvalidLang        = errors.New("only cn or en language supported")
 	ErrInvalidCodeLang    = errors.New("not supported code language")
 	ErrUnSupporttedEditor = errors.New("only vim and neovim/nvim supported")
+
+	CfgDir  = "."
+	cfgFile = "leetgo.json"
 
 	codeLangExtensionDic = map[string]string{
 		"go":      ".go",
@@ -65,6 +69,15 @@ var defaultCfg = &Config{
 	Editor:   DefaultEditor,
 }
 
+func init() {
+	homedir, _ := home.Dir()
+	if homedir != "" {
+		CfgDir = filepath.Join(homedir, ".leetgo")
+		cfgFile = filepath.Join(CfgDir, cfgFile)
+		_ = os.MkdirAll(CfgDir, os.ModePerm)
+	}
+}
+
 func Write(cfg *Config) (*Config, error) {
 	storedCfg, err := Get()
 	if err != nil {
@@ -76,7 +89,7 @@ func Write(cfg *Config) (*Config, error) {
 	}
 	cfg = merge(storedCfg, cfg)
 	data, _ := json.MarshalIndent(cfg, "", "  ")
-	err = os.WriteFile(configFile, data, 0640)
+	err = os.WriteFile(cfgFile, data, 0o640)
 	log.Debug(err)
 	return cfg, err
 }
@@ -96,7 +109,7 @@ func merge(pre, cur *Config) *Config {
 }
 
 func read() ([]byte, error) {
-	_, err := os.Stat(configFile)
+	_, err := os.Stat(cfgFile)
 	if err != nil {
 		log.Debug(err)
 		if os.IsNotExist(err) {
@@ -104,7 +117,7 @@ func read() ([]byte, error) {
 		}
 		return nil, err
 	}
-	return os.ReadFile(configFile)
+	return os.ReadFile(cfgFile)
 }
 
 func Get() (*Config, error) {
@@ -119,6 +132,10 @@ func Get() (*Config, error) {
 }
 
 func IsDefaultLang() bool {
+	if os.Getenv("LCL") == DefaultLanguage {
+		return true
+	}
+
 	cfg, err := Get()
 	if err != nil {
 		return true
@@ -140,6 +157,7 @@ func LeetcodeLang(lang string) string {
 	}
 	return lang
 }
+
 func DisplayLang(lang string) string {
 	if lang == "golang" {
 		return "go"
@@ -160,6 +178,7 @@ func SupportedEditor(editor string) bool {
 	_, ok := editorCmdDic[editor]
 	return ok
 }
+
 func GetEditorCmdOps(editor string) (string, []string) {
 	return editorCmdDic[editor], editorCmdOption[editor]
 }

@@ -12,9 +12,8 @@ import (
 )
 
 type singleViewer struct {
-	id string
-
 	spinner *spinner.Spinner
+	id      string
 }
 
 func (v *singleViewer) Run() error {
