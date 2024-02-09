@@ -1,9 +1,8 @@
 package comp
 
 import (
-	"github.com/charmbracelet/huh"
-
 	"github.com/zrcoder/leetgo/internal/config"
+	"github.com/zrcoder/leetgo/utils/huh"
 )
 
 type configer struct {
@@ -19,11 +18,7 @@ func (c *configer) Run() error {
 			return err
 		}
 		init := true
-		err = huh.NewConfirm().
-			Title("No config found in the current directory, initial?").
-			Description("Initial the current directory as your leetgo project.").
-			Value(&init).
-			Run()
+		err = huh.NewConfirm("No config found, initialize?", "", &init).Run()
 		if err != nil {
 			return err
 		}

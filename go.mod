@@ -13,6 +13,7 @@ require (
 	github.com/charmbracelet/log v0.2.2
 	github.com/cweill/gotests v1.6.0
 	github.com/j178/kooky v0.0.0-20230609034248-af88dcd40695
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/urfave/cli/v2 v2.25.6
 	github.com/zellyn/kooky v0.0.0-20221025221128-3e66d684c4db
 	github.com/zrcoder/tdoc v0.0.0-20230629122849-e374e241945e

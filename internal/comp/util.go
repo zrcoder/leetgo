@@ -7,7 +7,6 @@ import (
 	"os"
 	"sort"
 
-	"github.com/charmbracelet/huh"
 	tmodel "github.com/zrcoder/tdoc/model"
 
 	"github.com/zrcoder/leetgo/internal/config"
@@ -16,6 +15,7 @@ import (
 	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
 	"github.com/zrcoder/leetgo/utils/exec"
+	"github.com/zrcoder/leetgo/utils/huh"
 )
 
 const (
@@ -223,11 +223,10 @@ func search(key string) ([]model.Meta, error) {
 
 func askToCode(id string) error {
 	edit := true
-	err := huh.NewConfirm().
-		Title("Solve the question now?").
-		Description("Open the local code file with your favorite editor to edit the code.").
-		Value(&edit).
-		Run()
+	err := huh.NewConfirm(
+		"Solve the question now?",
+		"Open the local code file with your favorite editor to edit the code.",
+		&edit).Run()
 	if err != nil {
 		return err
 	}

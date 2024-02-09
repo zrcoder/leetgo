@@ -37,12 +37,13 @@ func WriteAll(all map[string]model.Meta) error {
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(cfg.Language, 0777)
+	languageDir := filepath.Join(config.CfgDir, cfg.Language)
+	err = os.MkdirAll(languageDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	data, _ := json.Marshal(all)
-	err = os.WriteFile(filepath.Join(cfg.Language, allFile), data, 0640)
+	err = os.WriteFile(filepath.Join(languageDir, allFile), data, 0640)
 	if err != nil {
 		log.Debug(err)
 	}
@@ -54,7 +55,7 @@ func GetAll() (map[string]model.Meta, error) {
 	if err != nil {
 		return nil, err
 	}
-	path := filepath.Join(cfg.Language, allFile)
+	path := filepath.Join(config.CfgDir, cfg.Language, allFile)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -241,23 +242,23 @@ func makeDir(cfg *config.Config, id string) error {
 }
 
 func GetDir(cfg *config.Config, id string) string {
-	return filepath.Join(cfg.Language, cfg.CodeLang, id)
+	return filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang, id)
 }
 
 func GetCodeFile(cfg *config.Config, id string) string {
-	return filepath.Join(cfg.Language, cfg.CodeLang, id, codeFileName+config.GetCodeFileExt(cfg.CodeLang))
+	return filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang, id, codeFileName+config.GetCodeFileExt(cfg.CodeLang))
 }
 
 func GetGoTestFile(cfg *config.Config, id string) string {
-	return filepath.Join(cfg.Language, cfg.CodeLang, id, codeFileName+"_test"+config.GetCodeFileExt(cfg.CodeLang))
+	return filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang, id, codeFileName+"_test"+config.GetCodeFileExt(cfg.CodeLang))
 }
 
 func GetMarkdownFile(cfg *config.Config, id string) string {
-	return filepath.Join(cfg.Language, cfg.CodeLang, id, markdownFile)
+	return filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang, id, markdownFile)
 }
 
 func GetPickedQuestionIds(cfg *config.Config) ([]string, error) {
-	dir := filepath.Join(cfg.Language, cfg.CodeLang)
+	dir := filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang)
 	var ids []string
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, _ error) error {
 		if path == dir {
@@ -273,5 +274,5 @@ func GetPickedQuestionIds(cfg *config.Config) ([]string, error) {
 }
 
 func getMetaFile(cfg *config.Config, id string) string {
-	return filepath.Join(cfg.Language, cfg.CodeLang, id, metaFile)
+	return filepath.Join(config.CfgDir, cfg.Language, cfg.CodeLang, id, metaFile)
 }
