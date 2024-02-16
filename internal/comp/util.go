@@ -243,11 +243,9 @@ func code(id string) error {
 		return err
 	}
 
-	codeFile := local.GetCodeFile(cfg, id)
 	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
-	args := append(ops, codeFile)
-	if config.IsGolang(cfg) {
-		args = append(args, local.GetGoTestFile(cfg, id))
-	}
-	return exec.Run("", cmd, args...)
+	mdFile := local.GetMarkdownFile(cfg, id)
+	codeFile := local.GetCodeFile(cfg, id)
+	ops = append(ops, codeFile, mdFile)
+	return exec.Run(local.GetDir(cfg, id), cmd, ops...)
 }
