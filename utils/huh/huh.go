@@ -7,5 +7,5 @@ func NewConfirm(title, description string, bind *bool) *huh.Form {
 		huh.NewGroup(
 			huh.NewConfirm().Title(title).Description(description).Value(bind),
 		),
-	)
+	).WithAccessible(true)
 }
