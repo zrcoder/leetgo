@@ -131,6 +131,10 @@ func Get() (*Config, error) {
 }
 
 func IsDefaultLang() bool {
+	if os.Getenv("LCL") == DefaultLanguage {
+		return true
+	}
+
 	cfg, err := Get()
 	if err != nil {
 		return true
