@@ -23,12 +23,33 @@ const (
 	codeFileName = "solution"
 	markdownFile = "question.md"
 	metaFile     = "question.json"
-
-	noteStartFlag = "/* @note start\n"
-	noteEndFlag   = "@note end */\n"
-	codeStartFlag = "// @submit start\n"
-	codeEndFlag   = "// @submit end\n"
 )
+
+type CommentFlag struct {
+	NoteStart, NoteEnd, CodeStart, CodeEnd string
+}
+
+var goCommentFlag = CommentFlag{
+	NoteStart: "/* @note start",
+	NoteEnd:   "@note end */",
+	CodeStart: "// @submit start",
+	CodeEnd:   "// @submit end",
+}
+
+var pythonCommentFlag = CommentFlag{
+	NoteStart: `"""@note start`,
+	NoteEnd:   `@note end"""`,
+	CodeStart: "# @submit start",
+	CodeEnd:   "# @submit end",
+}
+
+var commentFlagDict = map[string]CommentFlag{
+	"go":      goCommentFlag,
+	"golang":  goCommentFlag,
+	"py":      pythonCommentFlag,
+	"python":  pythonCommentFlag,
+	"python3": pythonCommentFlag,
+}
 
 var ErrNotCached = errors.New("not cached in local yet")
 
@@ -128,19 +149,15 @@ func GetMarkdown(id string) ([]byte, error) {
 
 func GetTypedCode(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed code in local, id:", id)
-	return getFromCodeFile(cfg, id, codeStartFlag, codeEndFlag)
+	commentFlag := commentFlagDict[cfg.CodeLang]
+	return getFromCodeFile(cfg, id, commentFlag.CodeStart, commentFlag.CodeEnd)
 }
 
 func GetNotes(cfg *config.Config, id string) ([]byte, error) {
 	log.Debug("begin to read typed notes in local, id:", id)
-	data, err := getFromCodeFile(cfg, id, noteStartFlag, noteEndFlag)
-	if err != nil {
-		return nil, err
-	}
-	if bytes.Contains(data, []byte(codeStartFlag)) {
-		return nil, nil
-	}
-	return data, nil
+	commentFlag := commentFlagDict[cfg.CodeLang]
+
+	return getFromCodeFile(cfg, id, commentFlag.NoteStart, commentFlag.NoteEnd)
 }
 
 func getFromCodeFile(cfg *config.Config, id, start, end string) ([]byte, error) {
@@ -149,16 +166,17 @@ func getFromCodeFile(cfg *config.Config, id, start, end string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	i := bytes.Index(content, []byte(start))
 	if i == -1 {
 		return content, nil
 	}
-	content = content[i+len(start):]
-	i = bytes.LastIndex(content, []byte(end))
-	if i == -1 {
+	j := bytes.LastIndex(content, []byte(end))
+	if j == -1 {
 		return content, nil
 	}
-	return content[:i], nil
+
+	return content[i+len(start) : j], nil
 }
 
 func GetQuestion(cfg *config.Config, id string) (*model.Question, error) {
@@ -194,12 +212,13 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 		line := fmt.Sprintf("package _%s\n\n", strings.ReplaceAll(question.TitleSlug, "-", "_"))
 		buf.WriteString(line)
 	}
-	buf.WriteString(noteStartFlag)
-	buf.WriteString("\n")
-	buf.WriteString(noteEndFlag)
-	buf.WriteString("\n")
+	commentFlag := commentFlagDict[cfg.CodeLang]
+	buf.WriteString(commentFlag.NoteStart)
+	buf.WriteString("\n\n")
+	buf.WriteString(commentFlag.NoteEnd + "\n\n")
 	codeLang := config.LeetcodeLang(cfg.CodeLang)
-	buf.WriteString(codeStartFlag)
+	buf.WriteString(commentFlag.CodeStart)
+	buf.WriteString("\n")
 	for _, v := range codes {
 		if v.Value == codeLang {
 			buf.WriteString(v.DefaultCode)
@@ -207,7 +226,7 @@ func writeCodeFile(question *model.Question, cfg *config.Config) error {
 			break
 		}
 	}
-	buf.WriteString(codeEndFlag)
+	buf.WriteString(commentFlag.CodeEnd)
 	return os.WriteFile(codeFile, buf.Bytes(), 0o640)
 }
 

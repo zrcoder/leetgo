@@ -9,7 +9,7 @@ import (
 var isDebug = false
 
 func init() {
-	isDebug = os.Getenv("LG_DEBUG") == "1"
+	isDebug = os.Getenv("LCD") == "1"
 	if isDebug {
 		log.SetReportCaller(true)
 		log.SetLevel(log.DebugLevel)

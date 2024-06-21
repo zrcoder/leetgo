@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/zellyn/kooky/browser/all"
+	_ "github.com/j178/kooky/browser/all"
 
 	"github.com/zrcoder/leetgo/internal/log"
 

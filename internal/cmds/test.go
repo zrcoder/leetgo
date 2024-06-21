@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 
@@ -18,5 +19,5 @@ func testAction(context *cli.Context) error {
 	if context.Args().Len() == 0 {
 		return errors.New("please pass the question id")
 	}
-	return comp.NewTester(context.Args().First()).Run()
+	return comp.NewTester(strings.Join(context.Args().Slice(), " ")).Run()
 }
