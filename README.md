@@ -4,6 +4,8 @@ Cli APP for Leetcode.
 
 ![examples](example.gif)
 
+> Only tested for Golang and Python until now.
+
 ```shell
 USAGE:
    leetgo command [command options] [arguments...]
@@ -21,8 +23,6 @@ COMMANDS:
 ```shell
 go install github.com/zrcoder/leetgo@latest
 ```
-
-> Only tested for Golang until now.
 
 ## How to auth?
 
