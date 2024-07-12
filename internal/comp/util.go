@@ -93,17 +93,17 @@ func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		noteDate, err := local.GetNotes(cfg, id)
+		noteData, err := local.GetNotes(cfg, id)
 		if err != nil {
 			return nil, err
 		}
-		noteDate = bytes.TrimSpace(noteDate)
+		noteData = bytes.TrimSpace(noteData)
 		mdData = bytes.TrimSpace(mdData)
 
 		buf := bytes.NewBuffer(nil)
 		buf.WriteString("\n\n## My Solution:\n\n")
-		if len(noteDate) > 0 {
-			buf.Write(noteDate)
+		if len(noteData) > 0 {
+			buf.Write(noteData)
 			buf.WriteString("\n\n")
 		}
 		codeLang := config.DisplayLang(cfg.CodeLang)
