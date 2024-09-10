@@ -1,5 +1,7 @@
 # leetgo
 
+Archived. see https://github.com/j178/leetgo for new updates.
+
 Cli APP for Leetcode.
 
 ![examples](example.gif)
