@@ -77,7 +77,7 @@ func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
 		return nil, err
 	}
 	doc.Title = fmt.Sprintf("%s. %s", id, question.Title)
-	mdFile := local.GetMarkdownFile(cfg, id)
+	mdFile := local.GetMarkdownFile(id)
 	fi, err := os.Stat(mdFile)
 	if err != nil {
 		return nil, err
@@ -118,12 +118,7 @@ func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
 }
 
 func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
-	cfg, err := config.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	ids, err := local.GetPickedQuestionIds(cfg)
+	ids, err := local.GetPickedQuestionIds()
 	if err != nil {
 		return nil, err
 	}
@@ -244,11 +239,8 @@ func code(id string) error {
 	}
 
 	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
-	mdFile := local.GetMarkdownFile(cfg, id)
+	mdFile := local.GetMarkdownFile(id)
 	codeFile := local.GetCodeFile(cfg, id)
 	ops = append(ops, mdFile, codeFile)
-	if config.IsGolang(cfg) {
-		ops = append(ops, local.GetGoTestFile(cfg, id))
-	}
-	return exec.Run(local.GetDir(cfg, id), cmd, ops...)
+	return exec.Run(local.GetDir(id), cmd, ops...)
 }

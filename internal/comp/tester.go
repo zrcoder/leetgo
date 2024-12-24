@@ -11,8 +11,6 @@ import (
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
-	"github.com/zrcoder/leetgo/utils/exec"
-	"github.com/zrcoder/leetgo/utils/render"
 
 	"github.com/zrcoder/leetgo/internal/local"
 	"github.com/zrcoder/leetgo/internal/remote"
@@ -30,16 +28,6 @@ func (t *tester) Run() error {
 	}
 
 	t.id = regualarID(t.id)
-	// only surpport "go" to run test locally now
-	if config.IsGolang(cfg) {
-		fmt.Println("local testing...")
-		err = exec.Run(local.GetDir(cfg, t.id), "go", "test", ".")
-		if err != nil {
-			return err
-		}
-		fmt.Println(render.Info("local test succeed\n"))
-	}
-
 	t.spinner.Start() // remote testing...
 	err = t.remoteTest(cfg)
 	t.spinner.Stop()
