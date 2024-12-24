@@ -12,8 +12,9 @@ import (
 )
 
 type singleViewer struct {
-	spinner *spinner.Spinner
-	id      string
+	spinner  *spinner.Spinner
+	id       string
+	showGlow bool
 }
 
 func (v *singleViewer) Run() error {
@@ -48,22 +49,26 @@ func (v *singleViewer) Run() error {
 		return err
 	}
 
-	err = v.show()
-	if err != nil {
-		return err
+	if v.showGlow {
+		err = v.show()
+		if err != nil {
+			return err
+		}
+		return askToCode(v.id)
 	}
-
-	return askToCode(v.id)
+	return code(v.id)
 }
 
 func (v *singleViewer) localAction() (exist bool, err error) {
 	if local.Exist(v.id) {
-		exist = true
-		err = v.show()
-		if err != nil {
-			return
+		if v.showGlow {
+			err = v.show()
+			if err != nil {
+				return
+			}
+			return true, askToCode(v.id)
 		}
-		return true, askToCode(v.id)
+		return true, code(v.id)
 	}
 	return
 }

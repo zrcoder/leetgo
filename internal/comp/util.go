@@ -246,7 +246,7 @@ func code(id string) error {
 	cmd, ops := config.GetEditorCmdOps(cfg.Editor)
 	mdFile := local.GetMarkdownFile(cfg, id)
 	codeFile := local.GetCodeFile(cfg, id)
-	ops = append(ops, codeFile, mdFile)
+	ops = append(ops, mdFile, codeFile)
 	if config.IsGolang(cfg) {
 		ops = append(ops, local.GetGoTestFile(cfg, id))
 	}

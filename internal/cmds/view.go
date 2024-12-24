@@ -14,7 +14,7 @@ var View = &cli.Command{
 	Name:      "view",
 	Usage:     "view questions or solutions",
 	UsageText: "leetgo view [-s] 127",
-	Flags:     []cli.Flag{solutionFlag, sortbyFlag, reverseFlag},
+	Flags:     []cli.Flag{solutionFlag, showGlowFlag, sortbyFlag, reverseFlag},
 	Action:    viewAction,
 }
 
@@ -22,6 +22,13 @@ var solutionFlag = &cli.BoolFlag{
 	Name:    "solution",
 	Aliases: []string{"s"},
 	Usage:   "view the most voted solution",
+}
+
+var showGlowFlag = &cli.BoolFlag{
+	Name:    "show-glow",
+	Aliases: []string{"g"},
+	Value:   false,
+	Usage:   "show rendered markdown in terminal",
 }
 
 var sortbyFlag = &cli.StringFlag{
@@ -52,9 +59,10 @@ func viewAction(context *cli.Context) error {
 
 	id := strings.Join(args.Slice(), " ")
 	solution := context.Bool(solutionFlag.Name)
-	log.Debug("view<", id, "> solution?", solution)
+	showGlow := context.Bool(showGlowFlag.Name)
+	log.Debug("view<", id, "> solution?", solution, "> showGlow?", showGlow)
 	if solution {
 		return comp.NewSolutionViewer(id).Run()
 	}
-	return comp.NewSingleViewer(id, solution).Run()
+	return comp.NewSingleViewer(id, showGlow).Run()
 }
