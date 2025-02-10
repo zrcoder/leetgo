@@ -244,3 +244,13 @@ func code(id string) error {
 	ops = append(ops, mdFile, codeFile)
 	return exec.Run(local.GetDir(id), cmd, ops...)
 }
+
+func openTempMD(id string) error {
+	cfg, err := config.Get()
+	if err != nil {
+		return err
+	}
+
+	cmd, _ := config.GetEditorCmdOps(cfg.Editor)
+	return exec.Run(local.GetDir(id), cmd, local.TempMDFile)
+}

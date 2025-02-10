@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/huh"
+	"github.com/zrcoder/leetgo/internal/local"
+	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
-	"github.com/zrcoder/tdoc"
-	tmodel "github.com/zrcoder/tdoc/model"
 )
 
 func NewSolutionViewer(id string) Component {
@@ -31,16 +32,31 @@ func (s *solutionViewer) Run() error {
 		return err
 	}
 
-	docs, err := getDocsFromSolutions(solutionsResp, meta)
+	reqs := solutionsResp.SolutionReqs()
+	options := make([]huh.Option[model.SolutionReq], len(reqs))
+	for i, req := range reqs {
+		options[i] = huh.NewOption(fmt.Sprintf("%d. %s -- %s", i, req.Title, req.Author), req)
+	}
+	var req model.SolutionReq
+	err = huh.NewForm(huh.NewGroup(huh.NewSelect[model.SolutionReq]().Title("Solutions").Options(options...).Value(&req))).Run()
 	if err != nil {
 		return err
 	}
 
-	s.id = meta.FrontendID // original s.id may be "today"
-	err = tdoc.Run(docs, tmodel.Config{Title: fmt.Sprintf("Most Voted Solutions for %s", s.id)})
+	rsp, err := remote.GetSolution(&req, meta)
 	if err != nil {
 		return err
 	}
 
-	return askToCode(s.id)
+	content, err := rsp.RegularContent()
+	if err != nil {
+		return err
+	}
+
+	err = local.WriteTempMd(meta.FrontendID, []byte(content))
+	if err != nil {
+		return err
+	}
+
+	return openTempMD(meta.FrontendID)
 }

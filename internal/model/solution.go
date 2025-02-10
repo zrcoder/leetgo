@@ -106,6 +106,7 @@ type SolutionResp struct {
 	} `json:"data"`
 }
 
+// RegularContent returns regulared markdown content
 func (sp *SolutionResp) RegularContent() (string, error) {
 	content := sp.Data.Topic.Post.Content
 	if content == "" {
