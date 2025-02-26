@@ -47,11 +47,13 @@ var (
 		"vim":    "vim",
 		"emacs":  "emacs",
 		"vscode": "code",
+		"cursor": "cursor",
 	}
 	editorCmdOption = map[string][]string{
 		"neovim": {"-p"},
 		"nvim":   {"-p"},
 		"vim":    {"-p"},
+		"cursor": nil,
 		"vscode": nil,
 		"emacs":  nil,
 	}

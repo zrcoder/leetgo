@@ -21,7 +21,7 @@ const (
 
 	langUsage     = "language, en or cn"
 	codeLangUsage = "programing language"
-	editorUsage   = "editor for coding: vim/neovim/emacs/vscode"
+	editorUsage   = "editor for coding: vim/neovim/emacs/vscode/cursor"
 )
 
 var Config = &cli.Command{
