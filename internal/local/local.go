@@ -118,7 +118,9 @@ const TempMDFile = "tmp.md"
 func WriteTempMd(id string, content []byte) error {
 	log.Debug("write temp markdownfor question:", id)
 	dir := GetDir(id)
-	return os.WriteFile(filepath.Join(dir, TempMDFile), content, 0o600)
+	file := filepath.Join(dir, TempMDFile)
+	log.Debug("file:", file)
+	return os.WriteFile(file, content, 0o600)
 }
 
 func GetMarkdown(id string) ([]byte, error) {

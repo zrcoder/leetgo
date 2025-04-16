@@ -48,6 +48,7 @@ var (
 		"emacs":  "emacs",
 		"vscode": "code",
 		"cursor": "cursor",
+		"zed":    "zed",
 	}
 	editorCmdOption = map[string][]string{
 		"neovim": {"-p"},
@@ -56,6 +57,7 @@ var (
 		"cursor": nil,
 		"vscode": nil,
 		"emacs":  nil,
+		"zed":    nil,
 	}
 )
 

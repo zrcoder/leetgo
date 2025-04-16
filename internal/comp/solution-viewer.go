@@ -6,6 +6,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/huh"
 	"github.com/zrcoder/leetgo/internal/local"
+	"github.com/zrcoder/leetgo/internal/log"
 	"github.com/zrcoder/leetgo/internal/model"
 	"github.com/zrcoder/leetgo/internal/remote"
 )
@@ -42,6 +43,7 @@ func (s *solutionViewer) Run() error {
 	if err != nil {
 		return err
 	}
+	log.Debug("selected solution:", req.ID, req.Title, req.Author)
 
 	rsp, err := remote.GetSolution(&req, meta)
 	if err != nil {

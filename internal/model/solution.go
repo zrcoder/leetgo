@@ -112,6 +112,6 @@ func (sp *SolutionResp) RegularContent() (string, error) {
 	if content == "" {
 		content = sp.Data.SolutionArticle.Content
 	}
-	// content is all ready markdown
+	// content is already markdown
 	return parser.NewWithString(content).PreRrgular().Regular().String()
 }

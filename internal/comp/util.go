@@ -252,5 +252,7 @@ func openTempMD(id string) error {
 	}
 
 	cmd, _ := config.GetEditorCmdOps(cfg.Editor)
-	return exec.Run(local.GetDir(id), cmd, local.TempMDFile)
+	dir := local.GetDir(id)
+	log.Debug("open temp markdown", dir, local.TempMDFile)
+	return exec.Run(dir, cmd, local.TempMDFile)
 }
