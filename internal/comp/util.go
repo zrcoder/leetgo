@@ -1,13 +1,10 @@
 package comp
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"os"
 	"sort"
 
-	tmodel "github.com/zrcoder/tdoc/model"
+	// tmodel "github.com/zrcoder/tdoc/model"
 
 	"github.com/zrcoder/leetgo/internal/config"
 	"github.com/zrcoder/leetgo/internal/local"
@@ -64,104 +61,6 @@ func regualarID(id string) string {
 		return id
 	}
 	return today.Meta().FrontendID
-}
-
-func getDocFromLocal(id string) (*tmodel.DocInfo, error) {
-	cfg, err := config.Get()
-	if err != nil {
-		return nil, err
-	}
-	doc := &tmodel.DocInfo{}
-	question, err := local.GetQuestion(cfg, id)
-	if err != nil {
-		return nil, err
-	}
-	doc.Title = fmt.Sprintf("%s. %s", id, question.Title)
-	mdFile := local.GetMarkdownFile(id)
-	fi, err := os.Stat(mdFile)
-	if err != nil {
-		return nil, err
-	}
-	doc.ModTime = fi.ModTime()
-	log.Debug(doc.Title, doc.ModTime)
-	doc.Getter = func(_ string) ([]byte, error) {
-		mdData, err := os.ReadFile(mdFile)
-		if err != nil {
-			return nil, err
-		}
-		codeData, err := local.GetTypedCode(cfg, id)
-		if err != nil {
-			return nil, err
-		}
-		noteData, err := local.GetNotes(cfg, id)
-		if err != nil {
-			return nil, err
-		}
-		noteData = bytes.TrimSpace(noteData)
-		mdData = bytes.TrimSpace(mdData)
-
-		buf := bytes.NewBuffer(nil)
-		buf.WriteString("\n\n## My Solution:\n\n")
-		if len(noteData) > 0 {
-			buf.Write(noteData)
-			buf.WriteString("\n\n")
-		}
-		codeLang := config.DisplayLang(cfg.CodeLang)
-		fmt.Fprintf(buf, "```%s\n", codeLang)
-		buf.Write(codeData)
-		buf.WriteString("\n```\n")
-
-		mdData = append(mdData, buf.Bytes()...)
-		return mdData, nil
-	}
-	return doc, nil
-}
-
-func getDocsFromLocal() ([]*tmodel.DocInfo, error) {
-	ids, err := local.GetPickedQuestionIds()
-	if err != nil {
-		return nil, err
-	}
-	if len(ids) == 0 {
-		return nil, errors.New("you haven't pick any question yet")
-	}
-	log.Debug("local ids for book:", ids)
-
-	docs := make([]*tmodel.DocInfo, len(ids))
-
-	for i, id := range ids {
-		doc, err := getDocFromLocal(id)
-		if err != nil {
-			return nil, err
-		}
-		docs[i] = doc
-	}
-
-	return docs, nil
-}
-
-func getDocsFromSolutions(solutionsResp model.SolutionListResp, meta *model.Meta) ([]*tmodel.DocInfo, error) {
-	reqs := solutionsResp.SolutionReqs()
-	docs := make([]*tmodel.DocInfo, len(reqs))
-	for i, req := range reqs {
-		req := req // for doc.Getter
-		doc := &tmodel.DocInfo{}
-		doc.Title = req.Title
-		doc.Description = req.Author + " . " + req.CreateAt.Format("2006-01-02 15:04")
-		doc.Getter = func(_ string) ([]byte, error) {
-			rsp, err := remote.GetSolution(&req, meta)
-			if err != nil {
-				return nil, err
-			}
-			content, err := rsp.RegularContent()
-			if err != nil {
-				return nil, err
-			}
-			return append([]byte(content), '\n'), nil
-		}
-		docs[i] = doc
-	}
-	return docs, nil
 }
 
 func query(frontendID string) (*model.Meta, error) {
