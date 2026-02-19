@@ -85,7 +85,7 @@ func (p *parser) ToMarkDown() *parser {
 	replaceEm := h2md.Rule{
 		Filter: []string{"em"},
 		Replacement: func(content string, selec *goquery.Selection, options *h2md.Options) *string {
-			return h2md.String(content)
+			return new(content)
 		},
 	}
 	converter.AddRules(replaceSub, replaceSup, replaceEm)
